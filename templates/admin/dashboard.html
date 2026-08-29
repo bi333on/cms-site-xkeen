@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Админ-панель — Дашборд — VLESS-Keenetic CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <a href="/">⚡ VLESS-Keenetic</a>
+            </div>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard/" class="admin-nav-item active">
+                    <span class="nav-icon">📊</span> Дашборд
+                </a>
+                <a href="/admin/stats/" class="admin-nav-item">
+                    <span class="nav-icon">📈</span> Статистика
+                </a>
+                <a href="/admin/messages/" class="admin-nav-item">
+                    <span class="nav-icon">💬</span> Сообщения
+                </a>
+                <a href="/admin/users/" class="admin-nav-item">
+                    <span class="nav-icon">👥</span> Пользователи
+                </a>
+                <a href="/admin/pages/" class="admin-nav-item">
+                    <span class="nav-icon">📄</span> Страницы
+                </a>
+                <a href="/admin/blocks/" class="admin-nav-item">
+                    <span class="nav-icon">🧱</span> Блоки
+                </a>
+                <a href="/admin/modules/" class="admin-nav-item">
+                    <span class="nav-icon">📦</span> Модули
+                </a>
+                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout">
+                    <span class="nav-icon">🚪</span> Выйти
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main -->
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h1>📊 Дашборд</h1>
+                <div class="admin-topbar-actions">
+                    <span class="admin-user-badge">👤 {{ session.get('admin_username', 'Admin') }}</span>
+                    <a href="/" target="_blank" class="btn btn-sm btn-orange">🌐 Сайт</a>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ total }}</span>
+                            <span class="stat-label">Пользователей всего</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-green">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ active }}</span>
+                            <span class="stat-label">Активных</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-orange">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ today_users }}</span>
+                            <span class="stat-label">За сегодня</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📄</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ pages_count }}</span>
+                            <span class="stat-label">Страниц</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-orange">
+                        <div class="stat-icon">👁</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ visits_count }}</span>
+                            <span class="stat-label">Визитов</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ modules_count }}</span>
+                            <span class="stat-label">Модулей</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h3>⚡ Быстрые действия</h3>
+                    <div class="quick-actions">
+                        <a href="/admin/stats/" class="btn btn-orange btn-sm">📈 Статистика</a>
+                        <a href="/admin/users/" class="btn btn-orange btn-sm">👥 Пользователи</a>
+                        <a href="/admin/pages/" class="btn btn-orange btn-sm">📄 Страницы</a>
+                        <a href="/admin/pages/new/" class="btn btn-black btn-sm">➕ Новая страница</a>
+                        <a href="/admin/modules/" class="btn btn-orange btn-sm">📦 Модули</a>
+                        <a href="/" class="btn btn-black btn-sm" target="_blank">🌐 Открыть сайт</a>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h3>🔐 Двухфакторная аутентификация</h3>
+                    {% if totp_enabled %}
+                        <p style="color:var(--gray-600);margin-bottom:1rem;">
+                            <span class="status-badge status-active">✅ 2FA включён</span>
+                            При входе требуется код из Google Authenticator.
+                        </p>
+                        <button class="btn btn-black btn-sm" id="disable2faBtn">🚫 Отключить 2FA</button>
+                    {% else %}
+                        <p style="color:var(--gray-600);margin-bottom:1rem;">
+                            <span class="status-badge status-inactive">⏸ 2FA выключен</span>
+                            Защитите админку кодом из Google Authenticator.
+                        </p>
+                        <a href="/admin/2fa/setup/" class="btn btn-orange btn-sm">🔐 Включить 2FA</a>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+    {% if totp_enabled %}
+    <script>
+        document.getElementById('disable2faBtn').addEventListener('click', function() {
+            if (!confirm('Отключить двухфакторную аутентификацию? Это снизит безопасность.')) return;
+            fetch('/admin/2fa/disable/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { if (d.ok) location.reload(); else alert(d.error || 'Ошибка'); });
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

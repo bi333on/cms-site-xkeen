@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Протокол VLESS + Reality — принцип работы, преимущества, сравнение с VPN 2026{% endblock %}
+{% block description %}Подробное описание протокола VLESS + Reality: как работает, почему обходит DPI, сравнение с OpenVPN и WireGuard. Технические детали, преимущества, настройка на роутере Keenetic.{% endblock %}
+{% block keywords %}vless reality протокол, vless reality как работает, vless vs wireguard, vless reality обход dpi, vless reality преимущества, протокол vless reality технические детали, xray vless reality, vless xtls vision{% endblock %}
+
+{% block content %}
+<section class="hero hero-sm">
+    <div class="container">
+        <div class="breadcrumbs">
+            <a href="/">Главная</a><span class="sep">›</span><span>VLESS + Reality</span>
+        </div>
+        <h1 class="hero-title">Протокол <span class="accent">VLESS + Reality</span></h1>
+        <p class="hero-subtitle">Как работает самый современный протокол для обхода DPI. Технические детали, сравнение с аналогами и почему это лучший выбор для Keenetic в 2026 году.</p>
+    </div>
+</section>
+
+<!-- Принцип работы -->
+<section class="section">
+    <div class="container article-content">
+        <h2>🔍 Как работает VLESS + Reality</h2>
+
+        <p>VLESS — это облегчённый транспортный протокол, разработанный в рамках проекта Xray (форк V2Ray). В отличие от VMess, VLESS не имеет собственного шифрования — вместо этого он полагается на TLS, что делает его более лёгким и быстрым.</p>
+
+        <p><strong>Reality</strong> — это технология, которая маскирует TLS-трафик под трафик реального популярного сайта (например, microsoft.com, google.com, apple.com). В отличие от обычного TLS-прокси, Reality:</p>
+
+        <ul class="styled-list">
+            <li><strong>Не требует доменного имени</strong> — используется SNI реального сайта</li>
+            <li><strong>Не требует сертификата</strong> — перехватывает чужой TLS-сертификат</li>
+            <li><strong>Неотличима от обычного HTTPS</strong> — DPI видит обычное соединение с известным сайтом</li>
+            <li><strong>Использует XTLS-Vision</strong> — технологию, которая «видит» трафик и оптимизирует его обработку</li>
+        </ul>
+
+        <div class="info-box">
+            <strong>💡 Простыми словами:</strong> Ваш роутер Keenetic подключается к серверу, притворяясь, что вы заходите на популярный сайт (например, Microsoft). Система блокировки видит обычный HTTPS-трафик и не может его заблокировать.
+        </div>
+
+        <h2>⚡ XTLS-Vision: почему это быстро</h2>
+
+        <p>XTLS-Vision — это ключевая технология, которая делает VLESS + Reality таким быстрым. Она анализирует TLS-трафик и «пробрасывает» (Xray) зашифрованные данные без повторного шифрования на стороне клиента. Это позволяет достичь скорости до 95% от вашего тарифа.</p>
+
+        <div class="code-block"><pre><code>Обычный прокси:
+Клиент → Шифрование → Отправка → Сервер → Расшифровка → Сайт
+                         ↑ Потеря скорости 30-50%
+
+VLESS + XTLS-Vision:
+Клиент → Шифрование → Отправка → Сервер → Сайт
+                         ↑ Потеря скорости 5-10%</code></pre></div>
+
+        <h2>🛡️ Сравнение с другими протоколами</h2>
+
+        <div class="table-wrapper">
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>Характеристика</th>
+                        <th>VLESS + Reality</th>
+                        <th>WireGuard</th>
+                        <th>OpenVPN</th>
+                        <th>Shadowsocks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Скорость</td>
+                        <td>⭐⭐⭐⭐⭐ (95%)</td>
+                        <td>⭐⭐⭐⭐ (85%)</td>
+                        <td>⭐⭐ (50-60%)</td>
+                        <td>⭐⭐⭐ (70%)</td>
+                    </tr>
+                    <tr>
+                        <td>Обход DPI</td>
+                        <td>⭐⭐⭐⭐⭐</td>
+                        <td>⭐⭐</td>
+                        <td>⭐</td>
+                        <td>⭐⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Маскировка</td>
+                        <td>Как обычный HTTPS</td>
+                        <td>Определяется</td>
+                        <td>Определяется</td>
+                        <td>Определяется</td>
+                    </tr>
+                    <tr>
+                        <td>Требуется домен</td>
+                        <td>❌ Нет</td>
+                        <td>❌ Нет</td>
+                        <td>✅ Да</td>
+                        <td>❌ Нет</td>
+                    </tr>
+                    <tr>
+                        <td>Требуется сертификат</td>
+                        <td>❌ Нет</td>
+                        <td>❌ Нет</td>
+                        <td>✅ Да</td>
+                        <td>❌ Нет</td>
+                    </tr>
+                    <tr>
+                        <td>Поддержка на Keenetic</td>
+                        <td>✅ Xray-core</td>
+                        <td>✅ Встроен</td>
+                        <td>✅ Встроен</td>
+                        <td>✅ Entware</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>🔐 Безопасность</h2>
+
+        <p>VLESS + Reality обеспечивает высокий уровень безопасности:</p>
+
+        <ul class="styled-list">
+            <li><strong>Forward Secrecy</strong> — каждый сеанс использует уникальные ключи шифрования</li>
+            <li><strong>AEAD-шифрование</strong> — AES-256-GCM или ChaCha20-Poly1305</li>
+            <li><strong>Защита от replay-атак</strong> — встроена в протокол TLS 1.3</li>
+            <li><strong>uTLS- fingerprinting</strong> — имитация TLS-отпечатка реального браузера</li>
+        </ul>
+
+        <div class="warning-box">
+            <strong>⚠️ Важно:</strong> При использовании публичных конфигураций всегда проверяйте источник. Используйте только проверенные сервера и конфигурации от поставщиков VPN-услуг.
+        </div>
+
+        <div style="text-align:center;margin-top:2.5rem;">
+            <a href="/setup/" class="btn btn-orange btn-lg">🚀 Перейти к настройке</a>
+            <a href="/models/" class="btn btn-black btn-lg">📋 Совместимые модели</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

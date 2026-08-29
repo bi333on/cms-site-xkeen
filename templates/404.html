@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Страница не найдена — 404 — VLESS-Keenetic{% endblock %}
+{% block description %}Запрашиваемая страница не найдена. Возможно, она была удалена или перемещена.{% endblock %}
+
+{% block content %}
+<section class="error-page">
+    <div class="container">
+        <h1>404</h1>
+        <h2>Страница не найдена</h2>
+        <p>Возможно, страница была удалена, перемещена или вы допустили опечатку в адресе.</p>
+        <a href="/" class="btn btn-orange btn-lg">🏠 На главную</a>
+        {% if similar_pages %}
+        <p style="margin-top:2rem;color:var(--gray-500)">Возможно, вас интересует:</p>
+        <div class="similar-pages">
+            {% for p in similar_pages %}
+            <a href="/{{ p.slug }}/">{{ p.title }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

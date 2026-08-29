@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% if page %}Редактирование{% else %}Новая{% endif %} страница — Админ-панель CMS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+    <div class="editor-container" style="padding:1.5rem;">
+        <div class="editor-header">
+            <h1>{% if page %}✏️ {{ page.title }}{% else %}📝 Новая страница{% endif %}</h1>
+            <div class="editor-actions">
+                {% if page and page.is_published %}
+                    <a href="/{{ page.slug }}/" target="_blank" class="btn btn-sm btn-black">👁 Смотреть</a>
+                {% endif %}
+                <button id="saveBtn" class="btn btn-orange">💾 Сохранить</button>
+                <a href="/admin/pages/" class="btn btn-sm btn-black">← К списку</a>
+            </div>
+        </div>
+
+        <div id="saveStatus"></div>
+
+        <!-- Мета-поля -->
+        <div class="admin-card">
+            <div class="editor-meta">
+                <div class="form-group">
+                    <label for="pageTitle">Заголовок (H1 + title)</label>
+                    <input type="text" id="pageTitle" value="{{ page.title if page else '' }}" placeholder="Заголовок страницы">
+                </div>
+                <div class="form-group">
+                    <label for="pageSlug">Slug (URL: /ваш-slug/)</label>
+                    <input type="text" id="pageSlug" value="{{ page.slug if page else '' }}" placeholder="moi-slug">
+                </div>
+                <div class="form-group">
+                    <label for="pageDesc">Meta Description (SEO, до 320 символов)</label>
+                    <input type="text" id="pageDesc" value="{{ page.meta_description if page else '' }}" placeholder="Краткое описание для поисковиков">
+                </div>
+                <div class="form-group">
+                    <label for="pageKeys">Meta Keywords (через запятую)</label>
+                    <input type="text" id="pageKeys" value="{{ page.meta_keywords if page else '' }}" placeholder="ключ1, ключ2, ключ3">
+                </div>
+                <div class="form-group">
+                    <label for="pageMenuLabel">Надпись в меню (короткое название кнопки)</label>
+                    <input type="text" id="pageMenuLabel" value="{{ page.menu_label if page else '' }}" placeholder="Например: Тарифы">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="pageOrder">Порядок сортировки</label>
+                    <input type="number" id="pageOrder" value="{{ page.sort_order if page else 0 }}" min="0" style="width:100px;">
+                </div>
+                <div class="form-group">
+                    <label for="pageAccess">Уровень доступа</label>
+                    <select id="pageAccess" style="width:180px;">
+                        <option value="public" {% if page and page.access_level == 'public' %}selected{% endif %}>🌐 Доступна всем</option>
+                        <option value="auth_only" {% if page and page.access_level == 'auth_only' %}selected{% endif %}>🔒 Только авторизованным</option>
+                        <option value="admin_only" {% if page and page.access_level == 'admin_only' %}selected{% endif %}>👑 Только админам</option>
+                    </select>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="pagePublished" {% if page and page.is_published %}checked{% endif %}>
+                    <label for="pagePublished">Опубликована</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="pageNoindex" {% if page and page.noindex %}checked{% endif %}>
+                    <label for="pageNoindex">🚫 Не индексировать (noindex)</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="pageInMenu" {% if page and page.show_in_menu %}checked{% endif %}>
+                    <label for="pageInMenu">📋 Показывать в меню</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Панель блоков -->
+        <div class="admin-card">
+            <label style="font-weight:600;display:block;margin-bottom:0.75rem;color:var(--gray-700);">
+                🧱 Вставить блок
+            </label>
+            <div class="blocks-panel" id="blocksPanel">
+                <span class="blocks-panel-title">Нажмите на блок, чтобы вставить его в редактор:</span>
+                {% if blocks %}
+                    {% for block in blocks %}
+                    <span class="block-chip" data-type="{{ block.block_type }}" data-template="{{ block.html_template | e }}" data-class="{{ block.style_class }}" data-label="{{ block.label | e }}">
+                        <span class="block-chip-icon">{% if block.block_type == 'button' %}🔘{% elif block.block_type == 'info_box' %}ℹ️{% elif block.block_type == 'warning_box' %}⚠️{% elif block.block_type == 'cta_box' %}📢{% elif block.block_type == 'code_block' %}💻{% elif block.block_type == 'text_block' %}📝{% elif block.block_type == 'quote' %}💬{% elif block.block_type == 'image' %}🖼️{% elif block.block_type == 'spoiler' %}📋{% elif block.block_type == 'table' %}📊{% elif block.block_type == 'anchor' %}⚓{% else %}📌{% endif %}</span>
+                        {{ block.name }}
+                    </span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Markdown редактор -->
+        <div class="admin-card">
+            <label style="font-weight:600;display:block;margin-bottom:0.5rem;color:var(--gray-700);">
+                Содержание страницы (Markdown)
+            </label>
+            <textarea id="pageContent">{{ page.content if page else '# Новая страница\n\nНачните писать здесь...\n\n## Раздел 1\n\nВаш текст.\n\n```bash\n# пример кода\nкоманда --help\n```\n' }}</textarea>
+        </div>
+
+        <!-- Предпросмотр -->
+        <div class="admin-card" id="previewCard" style="display:none;">
+            <h3>👁 Предпросмотр</h3>
+            <div id="previewContent" class="page-content"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        var easyMDE = new EasyMDE({
+            element: document.getElementById('pageContent'),
+            spellChecker: false,
+            autoDownloadFontAwesome: false,
+            placeholder: 'Пишите в Markdown...',
+            toolbar: [
+                'bold', 'italic', 'heading', 'strikethrough', '|',
+                'quote', 'unordered-list', 'ordered-list', '|',
+                'link', 'image', '|',
+                'code', 'table', 'horizontal-rule', '|',
+                'preview', 'side-by-side', 'fullscreen', '|',
+                'guide'
+            ],
+            status: ['lines', 'words', 'cursor'],
+            minHeight: '400px',
+        });
+
+        // Генерация slug из заголовка
+        var titleInput = document.getElementById('pageTitle');
+        var slugInput = document.getElementById('pageSlug');
+        var isNew = {{ 'true' if not page else 'false' }};
+
+        if (isNew) {
+            titleInput.addEventListener('input', function() {
+                if (!slugInput.dataset.manual) {
+                    var slug = this.value.toLowerCase();
+                    var ru = {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z',
+                        'и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r',
+                        'с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch',
+                        'ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya'};
+                    slug = slug.split('').map(function(c){return ru[c]||c;}).join('');
+                    slug = slug.replace(/[^a-z0-9\s-]/g,'').replace(/[\s]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+                    slugInput.value = slug || 'novaya-stranitsa';
+                }
+            });
+            slugInput.addEventListener('input', function() { slugInput.dataset.manual = '1'; });
+        }
+
+        // === Вставка блоков ===
+        document.querySelectorAll('.block-chip').forEach(function(chip) {
+            chip.addEventListener('click', function() {
+                var type = this.dataset.type;
+                var tmpl = this.dataset.template;
+                var cls = this.dataset.class;
+                var label = this.dataset.label;
+
+                var text = '', md = '';
+
+                switch(type) {
+                    case 'button':
+                        var btnText = prompt('Текст кнопки:', label || 'Нажми меня');
+                        if (!btnText) return;
+                        var btnUrl = prompt('URL (ссылка):', '/');
+                        if (!btnUrl) return;
+                        md = '<a href="' + btnUrl + '" class="btn ' + cls + '">' + btnText + '</a>\n\n';
+                        break;
+                    case 'info_box':
+                        var boxTitle = prompt('Заголовок блока:', label || 'Информация');
+                        if (!boxTitle) return;
+                        var boxText = prompt('Текст:', '');
+                        if (!boxText) return;
+                        md = '> **💡 ' + boxTitle + '**\n>\n> ' + boxText + '\n\n';
+                        break;
+                    case 'warning_box':
+                        var warnTitle = prompt('Заголовок:', label || 'Предупреждение');
+                        if (!warnTitle) return;
+                        var warnText = prompt('Текст:', '');
+                        if (!warnText) return;
+                        md = '> **⚠️ ' + warnTitle + '**\n>\n> ' + warnText + '\n\n';
+                        break;
+                    case 'cta_box':
+                        var ctaTitle = prompt('Заголовок CTA:', label || 'Призыв к действию');
+                        if (!ctaTitle) return;
+                        var ctaText = prompt('Описание:', '');
+                        if (!ctaText) return;
+                        var ctaBtn = prompt('Текст кнопки:', 'Начать');
+                        if (!ctaBtn) return;
+                        var ctaUrl = prompt('URL кнопки:', '/');
+                        if (!ctaUrl) return;
+                        md = '<div class="cta-box">\n<h3>' + ctaTitle + '</h3>\n<p>' + ctaText + '</p>\n<a href="' + ctaUrl + '" class="btn btn-orange btn-lg">' + ctaBtn + '</a>\n</div>\n\n';
+                        break;
+                    case 'code_block':
+                        var codeText = prompt('Вставьте код:', 'echo "Hello World"');
+                        if (!codeText) return;
+                        md = '```bash\n' + codeText + '\n```\n\n';
+                        break;
+                    case 'text_block':
+                        var hlText = prompt('Текст для выделения:', label || '');
+                        if (!hlText) return;
+                        md = '<div class="text-block text-highlight">\n\n' + hlText + '\n\n</div>\n\n';
+                        break;
+                    case 'quote':
+                        var quoteText = prompt('Текст цитаты:', '');
+                        if (!quoteText) return;
+                        var quoteAuthor = prompt('Автор (необязательно):', '');
+                        md = '> ' + quoteText + '\n';
+                        if (quoteAuthor) md += '> — *' + quoteAuthor + '*\n';
+                        md += '\n';
+                        break;
+                    case 'image':
+                        var imgUrl = prompt('URL изображения:', 'https://');
+                        if (!imgUrl || imgUrl === 'https://') return;
+                        var imgAlt = prompt('Описание (alt):', label || 'Изображение');
+                        var imgWidth = prompt('Ширина (необязательно, например 800):', '');
+                        var styleAttr = imgWidth ? ' style="max-width:' + imgWidth + 'px;width:100%;"' : '';
+                        md = '<img src="' + imgUrl + '" alt="' + (imgAlt || '') + '" class="content-image"' + styleAttr + '>\n\n';
+                        break;
+                    case 'spoiler':
+                        var spTitle = prompt('Заголовок спойлера:', label || 'Нажмите, чтобы раскрыть');
+                        if (!spTitle) return;
+                        var spText = prompt('Скрытый текст:', '');
+                        if (!spText) return;
+                        md = '<details class="spoiler-block">\n<summary>' + spTitle + '</summary>\n<div class="spoiler-content">\n<p>' + spText.replace(/\n/g, '</p>\n<p>') + '</p>\n</div>\n</details>\n\n';
+                        break;
+                    case 'table':
+                        var tblCols = parseInt(prompt('Количество столбцов:', '3')) || 3;
+                        if (tblCols < 1) tblCols = 1;
+                        if (tblCols > 8) tblCols = 8;
+                        var tblRows = parseInt(prompt('Количество строк:', '3')) || 3;
+                        if (tblRows < 1) tblRows = 1;
+                        if (tblRows > 20) tblRows = 20;
+                        var tblHtml = '<div class="table-wrapper">\n<table class="compare-table">\n<thead>\n<tr>\n';
+                        for (var c = 0; c < tblCols; c++) tblHtml += '<th>Заголовок ' + (c + 1) + '</th>\n';
+                        tblHtml += '</tr>\n</thead>\n<tbody>\n';
+                        for (var r = 0; r < tblRows; r++) {
+                            tblHtml += '<tr>\n';
+                            for (var c2 = 0; c2 < tblCols; c2++) tblHtml += '<td>Ячейка</td>\n';
+                            tblHtml += '</tr>\n';
+                        }
+                        tblHtml += '</tbody>\n</table>\n</div>\n\n';
+                        md = tblHtml;
+                        break;
+                    case 'anchor':
+                        var anchorId = prompt('Название якоря (латиницей, например: setup):', 'section');
+                        if (!anchorId) return;
+                        anchorId = anchorId.trim().toLowerCase().replace(/[^a-z0-9\-_]/g, '-').replace(/^-+|-+$/g, '');
+                        md = '<a id="' + anchorId + '" class="anchor-point"></a>\n\n';
+                        break;
+                    default:
+                        md = '';
+                }
+
+                if (md) {
+                    var cm = easyMDE.codemirror;
+                    var doc = cm.getDoc();
+                    var cursor = doc.getCursor();
+                    doc.replaceRange(md, cursor);
+                    cm.focus();
+                }
+            });
+        });
+
+        // Сохранение
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            var data = {
+                title: document.getElementById('pageTitle').value.trim(),
+                slug: document.getElementById('pageSlug').value.trim().toLowerCase(),
+                meta_description: document.getElementById('pageDesc').value.trim(),
+                meta_keywords: document.getElementById('pageKeys').value.trim(),
+                content: easyMDE.value(),
+                is_published: document.getElementById('pagePublished').checked,
+                access_level: document.getElementById('pageAccess').value,
+                noindex: document.getElementById('pageNoindex').checked,
+                show_in_menu: document.getElementById('pageInMenu').checked,
+                menu_label: document.getElementById('pageMenuLabel').value.trim(),
+                sort_order: parseInt(document.getElementById('pageOrder').value) || 0,
+            };
+
+            var url = {% if page %}'/admin/pages/{{ page.id }}/edit/'{% else %}'/admin/pages/new/'{% endif %};
+            var statusEl = document.getElementById('saveStatus');
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(function(r) {
+                if (r.status === 401) {
+                    return r.json().then(function(d) {
+                        if (d.redirect) window.location.href = d.redirect;
+                        throw new Error(d.error || 'Требуется авторизация');
+                    });
+                }
+                var ct = r.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) throw new Error('Сервер вернул не JSON. Обновите страницу.');
+                return r.json();
+            })
+            .then(function(d) {
+                if (d.ok) {
+                    statusEl.className = 'save-status save-ok';
+                    statusEl.textContent = '✅ Сохранено!';
+                    if (d.redirect) window.location.href = d.redirect;
+                } else {
+                    statusEl.className = 'save-status save-err';
+                    statusEl.textContent = '❌ ' + (d.error || 'Ошибка');
+                }
+            })
+            .catch(function(e) {
+                statusEl.className = 'save-status save-err';
+                statusEl.textContent = '❌ ' + e.message;
+            });
+        });
+
+        // Ctrl+S
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('saveBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>

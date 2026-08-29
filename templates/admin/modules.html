@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Управление модулями — Админ-панель CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-logo"><a href="/">⚡ VLESS-Keenetic</a></div>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard/" class="admin-nav-item"><span class="nav-icon">📊</span> Дашборд</a>
+                <a href="/admin/stats/" class="admin-nav-item"><span class="nav-icon">📈</span> Статистика</a>
+                <a href="/admin/messages/" class="admin-nav-item"><span class="nav-icon">💬</span> Сообщения</a>
+                <a href="/admin/users/" class="admin-nav-item"><span class="nav-icon">👥</span> Пользователи</a>
+                <a href="/admin/pages/" class="admin-nav-item"><span class="nav-icon">📄</span> Страницы</a>
+                <a href="/admin/blocks/" class="admin-nav-item"><span class="nav-icon">🧱</span> Блоки</a>
+                <a href="/admin/modules/" class="admin-nav-item active"><span class="nav-icon">📦</span> Модули</a>
+                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout"><span class="nav-icon">🚪</span> Выйти</a>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h1>📦 Управление модулями</h1>
+                <span class="admin-user-badge">Расширяйте функционал сайта</span>
+            </header>
+            <div class="admin-content">
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>💡 Как работает модульная система:</strong> Каждый модуль — это независимое расширение, которое добавляет новые функции на сайт. Вы можете включать и выключать модули по необходимости. Новые модули устанавливаются в папку <code>modules/</code>.
+                </div>
+
+                <div class="module-grid">
+                    {% if modules %}
+                        {% for m in modules %}
+                        <div class="module-card">
+                            <div class="module-card-header">
+                                <span class="module-card-icon">{{ {'pages':'📄','users':'👥','seo':'🔍','blocks':'🧱','analytics':'📈','recaptcha':'🛡️','config_generator':'⚙️'}.get(m.name, '📦') }}</span>
+                                <div>
+                                    <div class="module-card-title">{{ m.display_name }}</div>
+                                    <div class="module-card-version">v{{ m.version }} · {{ m.author }}</div>
+                                </div>
+                            </div>
+                            <div class="module-card-desc">{{ m.description }}</div>
+                            <div class="module-card-footer">
+                                <span class="module-status {{ 'status-active' if m.is_enabled else 'status-inactive' }}">
+                                    {{ '✅ Включён' if m.is_enabled else '⏸ Выключен' }}
+                                </span>
+                                <button class="btn btn-sm {{ 'btn-black' if m.is_enabled else 'btn-orange' }}"
+                                    id="toggleBtn{{ m.id }}"
+                                    onclick="toggleModule({{ m.id }})">
+                                    {{ 'Выключить' if m.is_enabled else 'Включить' }}
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="module-card" style="text-align:center;padding:2rem;">
+                            <p>Нет установленных модулей.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if not modules %}
+                <div class="admin-card" style="margin-top:1.5rem;">
+                    <h3>🔧 Установка новых модулей</h3>
+                    <p style="color:var(--gray-600);margin-bottom:1rem;">Для установки нового модуля:</p>
+                    <ol style="color:var(--gray-700);padding-left:1.5rem;">
+                        <li>Создайте папку с именем модуля в <code>CMS_Site/modules/</code></li>
+                        <li>Создайте файл <code>module.py</code> с классом, наследующим <code>BaseModule</code></li>
+                        <li>Перезапустите приложение — модуль автоматически обнаружится</li>
+                    </ol>
+                    <p style="margin-top:0.75rem;">Пример модуля находится в <code>modules/analytics/module.py</code></p>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+    <script>
+        function toggleModule(id) {
+            fetch('/admin/api/modules/' + id + '/toggle/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.ok) location.reload();
+                });
+        }
+    </script>
+</body>
+</html>

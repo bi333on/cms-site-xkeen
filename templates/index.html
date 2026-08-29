@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Настройка роутера Keenetic VLESS + Reality 2026 — полное руководство{% endblock %}
+{% block description %}Полное руководство по настройке роутера Keenetic с протоколом VLESS + Reality. Все актуальные модели 2026 года: Keenetic Hopper, Giga, Ultra, Sprint, Titan. Пошаговая инструкция по установке и настройке VPN.{% endblock %}
+{% block keywords %}настройка keenetic vless reality 2026, keenetic vless reality инструкция, vless reality роутер keenetic настройка, keenetic vpn vless reality, обход блокировок keenetic 2026, vless reality протокол keenetic, настройка vpn на роутер keenetic, keenetic hopper vless, keenetic giga vless, keenetic ultra vless{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <h1 class="hero-title">Настройка роутера <span class="accent">Keenetic</span><br>по протоколу VLESS + Reality</h1>
+        <p class="hero-subtitle">Полное руководство 2026 года. Поддержка всех актуальных моделей Keenetic: Hopper, Giga, Ultra, Sprint, Titan и других. Максимальная скорость, стабильное соединение.</p>
+        <div class="hero-buttons">
+            <a href="/models/" class="btn btn-orange btn-lg">📋 Совместимые модели</a>
+            <a href="/setup/" class="btn btn-black btn-lg">🚀 Пошаговая инструкция</a>
+        </div>
+        <div class="hero-features">
+            <div class="feature-item"><span class="feature-icon">⚡</span> Высокая скорость</div>
+            <div class="feature-item"><span class="feature-icon">🔒</span> Шифрование Reality</div>
+            <div class="feature-item"><span class="feature-icon">📡</span> Все модели 2026</div>
+        </div>
+    </div>
+</section>
+
+<!-- Что такое VLESS + Reality -->
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Что такое <span class="accent">VLESS + Reality</span>?</h2>
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-card-icon">🔐</div>
+                <h3>Невидимость для DPI</h3>
+                <p>Протокол VLESS + Reality маскирует VPN-трафик под обычный HTTPS. Системы глубокого анализа пакетов (DPI) не могут отличить его от обычного посещения сайтов.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon">⚡</div>
+                <h3>Максимальная скорость</h3>
+                <p>В отличие от OpenVPN и WireGuard, VLESS использует XTLS- Vision — технологию, которая практически не замедляет соединение. Скорость до 95% от вашего тарифа.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon">🛡️</div>
+                <h3>Защита всего дома</h3>
+                <p>Настройка на роутере Keenetic защищает все устройства в сети: компьютеры, смартфоны, Smart TV, игровые приставки — без установки приложений на каждое устройство.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Почему Keenetic -->
+<section class="section section-alt">
+    <div class="container">
+        <h2 class="section-title">Почему <span class="accent">Keenetic</span>?</h2>
+        <div class="why-grid">
+            <div class="why-card">
+                <h3>🖥️ Собственная ОС KeeneticOS</h3>
+                <p>Модульная архитектура позволяет устанавливать пакеты Entware и OPKG прямо из репозитория. Полноценный Linux внутри роутера.</p>
+            </div>
+            <div class="why-card">
+                <h3>📦 Поддержка Entware</h3>
+                <p>Репозиторий Entware содержит тысячи пакетов, включая Xray-core — основной инструмент для работы с протоколом VLESS + Reality.</p>
+            </div>
+            <div class="why-card">
+                <h3>🔄 Автоматическое обновление</h3>
+                <p>KeeneticOS автоматически обновляет компоненты и пакеты. Ваш VPN всегда будет работать на актуальной версии протокола.</p>
+            </div>
+            <div class="why-card">
+                <h3>📡 Все модели 2026 года</h3>
+                <p>Поддерживаются все актуальные модели: Hopper, Giga, Ultra, Sprint, Titan, Skipper, Peak, Hopper DSL и другие. Полный список в разделе «Модели».</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Быстрый старт -->
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Как начать?</h2>
+        <div class="steps-visual">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-text">
+                    <strong>Проверьте модель роутера</strong>
+                    <p>Убедитесь, что ваш Keenetic поддерживает установку OPKG/Entware. Все модели с индексом KN-xxxx поддерживаются.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-text">
+                    <strong>Установите компоненты OPKG</strong>
+                    <p>В веб-интерфейсе роутера установите пакеты «OPKG» и «Модуль ядра для OPKG» из раздела «Управление» → «Параметры компонентов».</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-text">
+                    <strong>Установите Xray-core</strong>
+                    <p>Подключитесь к роутеру по SSH и выполните установку Xray-core из репозитория Entware.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-text">
+                    <strong>Настройте конфигурацию VLESS + Reality</strong>
+                    <p>Следуйте нашей пошаговой инструкции по созданию конфигурационного файла Xray.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-text">
+                    <strong>Настройте автозапуск</strong>
+                    <p>Добавьте Xray в автозагрузку роутера для постоянной работы VPN.</p>
+                </div>
+            </div>
+        </div>
+        <div style="text-align:center;margin-top:2.5rem;">
+            <a href="/setup/" class="btn btn-orange btn-lg">📖 Полная инструкция</a>
+        </div>
+    </div>
+</section>
+
+<!-- Модели -->
+<section class="section section-alt">
+    <div class="container">
+        <h2 class="section-title">Совместимые модели <span class="accent">2026</span></h2>
+        <div class="models-grid">
+            <div class="model-card">
+                <span class="badge">✅ Поддерживает</span>
+                <h3>Keenetic Hopper (KN-3812)</h3>
+                <p>Wi-Fi 7, до 6 Гбит/с. Флагманская модель 2025-2026 с максимальной производительностью для VLESS.</p>
+                <a href="/models/" class="btn btn-sm btn-orange">Подробнее</a>
+            </div>
+            <div class="model-card">
+                <span class="badge">✅ Поддерживает</span>
+                <h3>Keenetic Giga (KN-3012)</h3>
+                <p>Wi-Fi 6, до 2.5 Гбит/с. Оптимальный выбор для дома и небольшого офиса.</p>
+                <a href="/models/" class="btn btn-sm btn-orange">Подробнее</a>
+            </div>
+            <div class="model-card">
+                <span class="badge">✅ Поддерживает</span>
+                <h3>Keenetic Ultra (KN-2610)</h3>
+                <p>Wi-Fi 6, до 1.8 Гбит/с. Отличное соотношение цены и производительности.</p>
+                <a href="/models/" class="btn btn-sm btn-orange">Подробнее</a>
+            </div>
+        </div>
+        <div style="text-align:center;margin-top:2rem;">
+            <a href="/models/" class="btn btn-outline">📋 Все модели (12+)</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <h2>Готовы настроить Keenetic?</h2>
+        <p>Следуйте нашей инструкции и получите стабильный VPN на всех устройствах дома за 15 минут.</p>
+        <a href="/setup/" class="btn btn-orange btn-lg">🚀 Начать настройку</a>
+    </div>
+</section>
+{% endblock %}

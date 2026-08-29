@@ -1,0 +1,41 @@
+# Caddyfile — Reverse proxy для VLESS-Keenetic CMS
+# Caddy автоматически получает SSL-сертификаты от Let's Encrypt
+
+keen.z-ip.pro {
+    # Сжатие
+    encode gzip zstd
+
+    # Заголовки безопасности
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Проксирование на Gunicorn (Flask)
+    reverse_proxy 127.0.0.1:8000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Статические файлы — прямой доступ
+    handle_path /static/* {
+        root * /opt/cms-site/static
+        file_server
+    }
+
+    # Загрузки (если есть)
+    handle_path /uploads/* {
+        root * /opt/cms-site/uploads
+        file_server
+    }
+
+    # Логи
+    log {
+        output file /var/log/caddy/cms-keenetic.log
+        format json
+    }
+}

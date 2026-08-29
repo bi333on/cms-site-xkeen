@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}FAQ — Частые вопросы по настройке VLESS + Reality на Keenetic — 2026{% endblock %}
+{% block description %}Ответы на частые вопросы по настройке VLESS + Reality на роутерах Keenetic. Решение проблем, ошибки подключения, совместимость моделей, настройка маршрутизации.{% endblock %}
+{% block keywords %}keenetic vless reality faq, вопросы keenetic vless, проблемы настройки keenetic vpn, ошибка xray keenetic, keenetic vless не работает, keenetic vless reality решение проблем{% endblock %}
+
+{% block content %}
+<section class="hero hero-sm">
+    <div class="container">
+        <div class="breadcrumbs">
+            <a href="/">Главная</a><span class="sep">›</span><span>FAQ</span>
+        </div>
+        <h1 class="hero-title">Частые вопросы</h1>
+        <p class="hero-subtitle">Ответы на самые популярные вопросы по настройке VLESS + Reality на роутерах Keenetic.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="faq-list">
+            <div class="faq-item">
+                <h3>❓ Какие модели Keenetic точно поддерживают VLESS + Reality?</h3>
+                <p>Все модели с индексом KN-xxxx и поддержкой OPKG/Entware: Hopper (KN-3812), Giga (KN-3012), Ultra (KN-2610), Titan (KN-3610), Sprint (KN-3312), Peak (KN-2710), Skipper (KN-2910), Giant (KN-4010), Hero (KN-2410), Viva (KN-2310) и другие. Модели Keenetic Air и City имеют ограниченную поддержку из-за малого объёма памяти. Полный список смотрите в разделе <a href="/models/">«Модели»</a>.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>❓ Какая скорость будет через VLESS + Reality на Keenetic?</h3>
+                <p>Скорость зависит от модели роутера и вашего интернет-тарифа. На моделях Hopper и Giga скорость достигает 500-900 Мбит/с. На моделях среднего сегмента (Ultra, Sprint) — 200-500 Мбит/с. Бюджетные модели — до 100 Мбит/с. Протокол VLESS + XTLS-Vision обеспечивает минимальные потери скорости (5-10%).</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>❓ Можно ли настроить VLESS + Reality без USB-накопителя?</h3>
+                <p>Да, но это зависит от модели. Если у роутера достаточно встроенной памяти (128+ МБ свободного места), Entware и Xray-core можно установить во внутреннюю память. На моделях с малым объёмом памяти (например, Keenetic Air) USB-накопитель обязателен.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>❓ Почему Xray не запускается?</h3>
+                <p>Проверьте следующее:</p>
+                <ul>
+                    <li>Правильность конфигурационного файла: <code>xray -c /opt/etc/xray/config.json -test</code></li>
+                    <li>Наличие всех обязательных полей в конфиге (UUID, адрес сервера, публичный ключ)</li>
+                    <li>Доступность сервера: <code>ping ВАШ_СЕРВЕР</code></li>
+                    <li>Логи Xray: <code>logread | grep xray</code></li><br>
+                    <div class="faq-note">
+                        <center><a href="/setup/" class="btn btn-black" target="_blank">👍 Еще раз проверьте все настройки</a></center>
+                    </div>
+                </ul>
+            </div>
+
+            <div class="faq-item">
+                <h3>❓ Как обновить Xray-core на Keenetic?</h3>
+                <p>Выполните следующие команды в терминале PuTTY или Termius:</p>
+                <div class="code-block"><pre><code>opkg update</code></pre></div>
+                <div class="code-block"><pre><code>xkeen -uk</code></pre></div>
+                <div class="code-block"><pre><code>xkeen -ux</code></pre></div>
+                <p>Выбираем последнюю версию XKeen и подтвердите обновление.</p>
+                <p>Не забудьте заменить файлы конфигурации <b>04_outbounds.json</b> и <b>05_routing.json</b>, они были изменены после последнего обновления.</p>
+                <p>После замены файлов перезапустите XKeen:</p>
+                <div class="code-block"><pre><code>xkeen -restart</code></pre></div>
+            </div>
+
+            <div class="faq-item">
+                <h3>❓ Можно ли использовать один 04_outbounds.json для нескольких роутеров Keenetic?</h3>
+                <p>Нет, 04_outbounds.json Xray защищен от использования несколькими клиентами. Для каждого клиента (роутера) нужно создать отдельный vless:// (UUID) в <a href="https://t.me/zipok_bot" target="_blank" rel="noopener">БОТЕ</a>.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>❓ Что делать, если перестал работать конфиг?</h3>
+                <p>Рекомендуется:</p>
+                <ol>
+                    <li>Обновить Xray-core до последней версии</li>
+                    <li>Проверить актуальность <code>serverName</code> (реальный сайт должен быть доступен)</li>
+                    <li>Сменить fingerprint браузера в конфигурации</li>
+                    <li>Проверить, не заблокирован ли IP вашего VPS</li>
+                </ol>
+            </div>
+
+            <div class="faq-item">
+                <h3>❓ Влияет ли VPN на скорость домашней сети (между устройствами)?</h3>
+                <p>Нет, локальный трафик (между устройствами в домашней сети) не проходит через VPN. Правила маршрутизации исключают приватные IP-адреса (192.168.x.x, 10.x.x.x) из перенаправления.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>❓ Как полностью удалить Xray с роутера?</h3>
+                <div class="code-block"><pre><code>/opt/etc/init.d/S99xray stop
+opkg remove xray-core
+rm -rf /opt/etc/xray
+rm /opt/etc/init.d/S99xray</code></pre></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2>Не нашли ответ?</h2>
+        <p>Задайте вопрос через нашего Telegram-бота — мы поможем с настройкой!</p>
+        <a href="https://t.me/s_zipok_bot" target="_blank" rel="noopener" class="btn btn-orange btn-lg">💬 Задать вопрос в Telegram</a>
+    </div>
+</section>
+{% endblock %}

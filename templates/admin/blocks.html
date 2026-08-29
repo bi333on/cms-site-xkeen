@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Управление блоками редактора — Админ-панель CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-logo"><a href="/">⚡ VLESS-Keenetic</a></div>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard/" class="admin-nav-item"><span class="nav-icon">📊</span> Дашборд</a>
+                <a href="/admin/stats/" class="admin-nav-item"><span class="nav-icon">📈</span> Статистика</a>
+                <a href="/admin/messages/" class="admin-nav-item"><span class="nav-icon">💬</span> Сообщения</a>
+                <a href="/admin/users/" class="admin-nav-item"><span class="nav-icon">👥</span> Пользователи</a>
+                <a href="/admin/pages/" class="admin-nav-item"><span class="nav-icon">📄</span> Страницы</a>
+                <a href="/admin/blocks/" class="admin-nav-item active"><span class="nav-icon">🧱</span> Блоки</a>
+                <a href="/admin/modules/" class="admin-nav-item"><span class="nav-icon">📦</span> Модули</a>
+                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout"><span class="nav-icon">🚪</span> Выйти</a>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h1>🧱 Блоки редактора</h1>
+                <span class="admin-user-badge">Управление блоками для вставки в страницы</span>
+            </header>
+            <div class="admin-content">
+                <div class="info-box" style="margin-bottom:1.5rem;">
+                    <strong>💡 Блоки редактора</strong> — это готовые элементы (кнопки, инфо-блоки, предупреждения, CTA и др.), которые можно вставлять в страницы через панель блоков в редакторе. Управляйте видимостью блоков здесь.
+                </div>
+
+                <div class="admin-card">
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Название</th>
+                                    <th>Тип</th>
+                                    <th>CSS класс</th>
+                                    <th>Порядок</th>
+                                    <th>Активен</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if blocks %}
+                                    {% for b in blocks %}
+                                    <tr>
+                                        <td>{{ b.id }}</td>
+                                        <td><strong>{{ b.name }}</strong></td>
+                                        <td>
+                                            <span class="status-badge status-warning">
+                                                {% if b.block_type == 'button' %}🔘 Кнопка
+                                                {% elif b.block_type == 'info_box' %}ℹ️ Инфо
+                                                {% elif b.block_type == 'warning_box' %}⚠️ Предупр.
+                                                {% elif b.block_type == 'cta_box' %}📢 CTA
+                                                {% elif b.block_type == 'code_block' %}💻 Код
+                                                {% elif b.block_type == 'text_block' %}📝 Текст
+                                                {% elif b.block_type == 'quote' %}💬 Цитата
+                                                {% elif b.block_type == 'image' %}🖼️ Изображение
+                                                {% elif b.block_type == 'spoiler' %}📋 Спойлер
+                                                {% elif b.block_type == 'table' %}📊 Таблица
+                                                {% elif b.block_type == 'anchor' %}⚓ Якорь
+                                                {% else %}📌 {{ b.block_type }}
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td><code>{{ b.style_class }}</code></td>
+                                        <td>{{ b.sort_order }}</td>
+                                        <td><span class="status-badge {{ 'status-active' if b.is_active else 'status-inactive' }}">{{ 'Да' if b.is_active else 'Нет' }}</span></td>
+                                        <td>
+                                            <button class="btn-table btn-table-toggle" onclick="toggleBlock({{ b.id }})">
+                                                {{ '🔒 Скрыть' if b.is_active else '✅ Показать' }}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="7" class="loading-cell">Нет блоков</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function toggleBlock(id) {
+            fetch('/admin/api/blocks/' + id + '/toggle/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { if (d.ok) location.reload(); });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Профиль — VLESS-Keenetic{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-header">
+                {% if current_user.photo_url %}
+                <img src="{{ current_user.photo_url }}" alt="Avatar" class="profile-avatar">
+                {% else %}
+                <div class="profile-avatar-placeholder">{{ current_user.first_name[:1]|upper if current_user.first_name else '👤' }}</div>
+                {% endif %}
+                <h2>{{ current_user.first_name }} {{ current_user.last_name or '' }}</h2>
+                {% if current_user.username %}
+                <p class="profile-username">@{{ current_user.username }}</p>
+                {% endif %}
+                <span class="profile-badge">✅ Аккаунт активен</span>
+                <br>
+                {% if current_user.is_admin %}
+                <span class="profile-badge" style="background:#FFF3E0;color:#E65100;">👑 Администратор</span>
+                {% else %}
+                <span class="profile-badge">👤 Пользователь</span>
+                {% endif %}
+            </div>
+
+            <div class="profile-details">
+                <div class="detail-row">
+                    <span class="detail-label">Дата регистрации</span>
+                    <span class="detail-value">{{ current_user.registered_at.strftime('%d.%m.%Y') if current_user.registered_at else '—' }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Последний вход</span>
+                    <span class="detail-value">{{ current_user.last_login.strftime('%d.%m.%Y %H:%M') if current_user.last_login else '—' }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Telegram ID</span>
+                    <span class="detail-value">{{ current_user.telegram_id }}</span>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <a href="/setup/" class="btn btn-orange">📖 Инструкция по настройке</a>
+                <a href="/logout/" class="btn btn-black">🚪 Выйти</a>
+            </div>
+            {% if current_user.is_admin %}
+            <div class="profile-actions" style="margin-top:0.5rem;">
+                <a href="/admin/dashboard/" class="btn btn-orange">⚙️ В Админку</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

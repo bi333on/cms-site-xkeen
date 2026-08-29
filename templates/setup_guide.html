@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Пошаговая инструкция: настройка VLESS + Reality на роутере Keenetic — 2026{% endblock %}
+{% block description %}Пошаговая инструкция по настройке протокола VLESS + Reality на роутере Keenetic. Установка OPKG, Xray-core, создание конфигурации, настройка автозапуска. Полное руководство для всех моделей 2026 года.{% endblock %}
+{% block keywords %}настройка vless reality keenetic пошаговая инструкция, установка xray keenetic, настройка opkg keenetic, конфигурация vless reality keenetic, xray-core keenetic установка, vless reality настройка роутер, keenetic vpn пошаговая инструкция{% endblock %}
+
+{% block content %}
+<section class="hero hero-sm">
+    <div class="container">
+        <div class="breadcrumbs">
+            <a href="/">Главная</a><span class="sep">›</span><span>Инструкция</span>
+        </div>
+        <h1 class="hero-title">Пошаговая <span class="accent">инструкция</span></h1>
+        <p class="hero-subtitle">Настройка VLESS + Reality на роутере Keenetic от установки компонентов до работающего VPN. Время выполнения: ~15-25 минут.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container article-content">
+
+        <!-- Шаг 1 -->
+        <div class="step-block">
+            <h2><span class="step-badge">Шаг 1</span> Подготовка роутера</h2>
+            <p>Зайдите в веб-интерфейс роутера Keenetic по адресу <code><a href="http://192.168.1.1" target="_blank">192.168.1.1</a></code> или <code><a href="http://my.keenetic.net" target="_blank">my.keenetic.net</a></code>.</p>
+            <ol>
+                <li>Перейдите в раздел <strong>«Настройки системы» → «Изменить набор компонентов»</strong>.</li>
+                <li>Найдите и установите компоненты:    
+                    <ul>--------------</ul>
+                    <ul>
+                        <li><strong>Файловая система Ext</strong></li>
+                        <li><strong>Пакет расширения Xtables-addons для Netfilter</strong></li>
+                    </ul> 
+                    <ul>--------------</ul>     
+                    <ul>
+                        <li><strong>Прокси-сервер DNS-over-TLS</strong></li>
+                        <li><strong>Прокси-сервер DNS-over-HTTPS</strong></li>
+                    </ul>
+                    <ul>--------------</ul>    
+                    <ul>
+                        <li><strong>Пакеты OPKG</strong> — менеджер пакетов</li>
+                        <li><strong>Поддержка открытых пакетов</strong></li>
+                        <li><strong>Модули ядра для поддержки файловых систем</strong></li>
+                        <li><strong>Модули ядра для поддержки USB-видео</strong></li>
+                        <li><strong>Модули ядра для поддержки USB-аудио</strong></li>
+                        <li><strong>Модули ядра подсистемы Traffic Control</strong></li>
+                        <li><strong>Модули ядра подсистемы USB over IP</strong></li>
+                        <li><strong>Пакет расширения Xtables-addons для Netfilter</strong></li>
+                        <li><strong>Модули ядра подсистемы Netfilter</strong></li>
+                    </ol></ul>
+                </li>
+                <ul>--------------</ul>
+                <li>Дождитесь установки компонентов (роутер перезагрузиться).</li>
+            </ol>
+
+            <a id="download" class="anchor-point"></a>
+            
+            <div class="info-box">
+                <strong>💡 Совет:</strong> Если у вашей модели Keenetic есть USB-порт,<br>Отформатируйте флешку в <b>формат EXT4</b>. Подключите USB-накопитель <b>(от 4 ГБ)</b>. 
+                <br>Это позволит установить Entware на внешний диск и не занимать внутреннюю память роутера. Используйте бесплатную программу для форматирования флешки, например: <a href="https://www.diskpart.com/download.html" target="_blank">AOMEI Partition Assistant</a>.
+            </div>
+            <div class="info-box">
+                <strong>💡 Заливаем на флешку Entware:</strong> Переходим в ВЕБ-интерфейс роутера, нажимаем на USB-диски и принтеры, тут два диска ( Встроенное хранилище ) и ( Ваша флешка USB ).
+                <br>Заходим в ( Ваша флешка USB ) и нажимаем ( Создать папку ) называем папку <b>install</b> и нажимаем ( Сохранить ).
+                <br> Скачиваем архив в зависимости от вашей модели роутера <a href="/modeli-keenetic/" target="_blank">mipsel-installer или mips-installer или aarch64-installer</a> и загружаем его в папку <b>install</b> на флешке.
+            </div>
+            <p>Переходим к Шагу 2</p>
+        </div>
+
+        <!-- Шаг 2 -->
+        <div class="step-block">
+            <h2><span class="step-badge">Шаг 2</span> Установка Entware в роутере на флешку</h2>
+            <p>Зайдите в ВЕБ-интерфейс роутера. Откройте раздел <b>OPKG</b> в пункте Основные настройки выберите носитель, вашу флешку USB и нажмите <b>Сохранить</b></p>
+
+            <div class="content-image"><img src="/uploads/keenetic_OPKG.png" alt="Keenetic OPKG" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <div class="info-box">⚠️ <b>Роутер не на долго задумается</b>, <br>после перейдите в раздел Диагностика нажмите Показать журнал</div>
+            <div class="info-box">⁉️ В журнале вы увидите ход установки архива, по завершению, <br>будет показано <b>сообщение об успешной установке</b>.</div>
+            <div class="info-box"><b>‼️ Важное сообщение в журнале:</b> По завершению установки обратите внимание на последнее или предпоследнее сообщение.<b> 
+              <br>Там будет указан: порт, логин и пароль для дальнейшей работы.</b></div>
+            <p>Перходим к Шагу 3</p>
+        </div>
+
+
+        <!-- Шаг 3 -->
+        <div class="step-block">
+            <h2><span class="step-badge">Шаг 3</span> Установка Xray-core</h2>
+            <p>Подключитесь к роутеру по SSH. Откройте терминал (<b><a href="https://putty.org.ru/download" target="_blank">Putty</a></b>, или <b><a href="https://www.termius.com/download/" target="_blank">Termius</a></b>) и выполните подключение к флешке.</p>
+            <div class="info-box">ip адрес: <b>192.168.1.1</b><br>порт: <b>22 или 222</b><br>логин: <b>root</b><br>пароль: <b>keenetic</b></div>
+            <p>После подключения установите Xray-core:</p>
+            <div class="code-block"><pre><code>opkg update</code></pre></div>
+            <div class="code-block"><pre><code>opkg install curl</code></pre></div>
+            <div class="code-block"><pre><code>opkg update && opkg upgrade && opkg install curl tar && \
+curl -sOfL https://raw.githubusercontent.com/RockBlack-VPN/XKeen/main/install.sh && \
+chmod +x ./install.sh && ./install.sh</code></pre></div>
+            <p>Ждем установку до появления такого меню</p>
+            <div class="content-image"><img src="/uploads/menu_setup.png" alt="Установка Xray-core" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <div class="info-box">Xray — выбираем цифру 1<br>Версия v25.12.8 — выбираем цифру 1, на сегодняшний момент у меня самая новая<br>Везде выбирайте пункт 1
+              <br>ждите установку и после так же выбираем 1 пункт.<br>Включае автообновление раз в неделю.<br>Т.е. в понедельник, выберите обновление ночью например в 03:00.</div>    
+             <div class="warning-box">
+                <strong>⚠️ Внимание:</strong> Если у вас эти модели роутеров, то откройте Выполнить эти действия!<br>— Keenetic Skipper 4G (KN-2910)<br>— Keenetic 4G (KN-1212)<br><b>(на этих моделях после установки Xkeen требуется вручную подменить ядро xray)
+                  <br>Если у вас не эти модели, то переходим к Шагу 4.</b>
+                <details class="spoiler-block"><summary>Выполнить эти действия!</summary>
+                  <div class="spoiler-content"><p>Скачиваем ядро: <a href="https://disk.yandex.ru/d/WG38INcuKM9SNQ" target="_blank">xray — 28,7 МБ</a></p>
+                  <p>Порядок установки/обновления ядра:</p><p>— остановить Xkeen (если запущен) командой:</p><div class="code-block"><pre><code>xkeen -stop</code></pre></div><p>— подменить ядро вручную в каталоге: /sbin/ (ищем файл xray)</p>
+                <div class="content-image"><img src="/uploads/xray.png" alt="Xray-core" style="max-width:800px;width:100%;border-radius:12px;"></div><p>— удаляем файл xray и загружаем скаченный</p><p>— далее в терминале Termius или Putty делаем файл исполняемым командой:</p>
+              <div class="code-block"><pre><code>chmod +x /opt/sbin/xray</code></pre></div><p>— отключить автообновление ядра командой:</p><div class="code-block"><pre><code>xkeen -dxc</code></pre></div><p>— запустить Xkeen командой:</p>
+            <div class="code-block"><pre><code>xkeen -start</code></pre></div><p>Готово переходим к Шагу 4.</p></div></details>
+              </div>
+        </div>
+
+        <!-- Шаг 4 -->
+        <div class="step-block">
+            <h2><span class="step-badge">Шаг 4</span> Установка конфигурации</h2>
+            <p>После инициализации Entware и установки Xray-core:</p>
+            <div class="cta-box">
+            <h3>Получаем ключ ссылку VLESS + Reality на Keenetic</h3>
+            <p>Вам потребуется ссылка вида vless://... где взять?</p>
+            <a href="https://t.me/zipok_bot?start=utm_newsite" class="btn btn-black" target="_blank">👍 БОТ для получения vless-ссылок</a></div>
+            <p>Нажмите в боте кнопку <b>🛡 VLESS / 🗝 Мои ключи</b></p>
+            <div class="content-image"><img src="/uploads/bot.png" alt="BOT VLESS" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <p>Нажмите в боте кнопку <b>➕ Купить VLESS</b></p>
+            <div class="content-image"><img src="/uploads/bot_buy.png" alt="BOT VLESS Купить" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <p>Нажмите в боте кнопку <b>📶 Для роутеров Keenetic (vless://)</b></p>
+            <div class="content-image"><img src="/uploads/bot_route.png" alt="BOT VLESS Роутеры" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <p>Выбираем нужный период <b>Например: 📶 Роутеры (vless://) 1 мес.</b></p>
+            <div class="content-image"><img src="/uploads/bot_tarif.png" alt="BOT VLESS Роутеры" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <div class="info-box"><p>Далее все просто: БОТ предложит выбрать локацию, выбирите например NL-(noAds) и далее БОТ предложит вам оплатить ссылку vless:// по СБП.</p>
+            <p>После оплаты перейдите обратно в <a href="https://t.me/zipok_bot?start=utm_newsite" target="_blank">БОТ</a> вы получите ссылку vless:// для использования с вашим роутером.</p></div>
+            
+            <a id="generators" class="anchor-point"></a>
+            
+            <h3>Генерируем и заменяем файл конфигурации XRay</h3>
+            <div class="cta-box">
+            <h3>После получения ссылки vless://</h3>
+            <p>Перейдите в Генератор 04_outbounds.json вставляем ссылку vless:// и нажмите кнопку Сгенерировать конфиг, затем Сохранить в файл</p>
+            <a href="/generator/" class="btn btn-black" target="_blank">👍 Генератор 04_outbounds.json</a><br>
+            <a href="https://ruweb.netfree.pro/api/public/dl/u4iIrZr8?inline=true" class="btn btn-black">👍 Приложение XKeen.exe</a>
+            <p>С помощю данного приложения вы сможете автоматически заменить 04_outbounds.json не заходя в интерфейс роутера.</p></div>
+            <p>Потребуется заменить файл 04_outbounds.json на роутере для этого заходите в папку <b>/etc/xray/configs/</b> и замените файл 04_outbounds.json на новый.</p>
+            <div class="content-image"><img src="/uploads/xray_04outbound.png" alt="XRay 04_outbounds" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <h3>Нужно перенести 443 порт роутера на какой либо другой</h3>
+            <div class="content-image"><img src="/uploads/comand.png" alt="Командная строка" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <p>Заходим в роутер и переходим в раздел <b>Командная строка</b> вводим команду: и Enter</p>
+            <div class="code-block"><pre><code>ip http ssl port 65083</code></pre></div>
+            <p>Требуется сохранить конфигурацию через команду</p>
+            <div class="code-block"><pre><code>system configuration save</code></pre></div>
+            <p>Переходим к Шагу 5</p>
+        </div>
+
+        <!-- Шаг 5 -->
+        <div class="step-block">
+            <h2><span class="step-badge">Шаг 5</span> Настройка политики XKeen</h2>
+            <div class="warning-box">
+                <p>⚠️ Настройка политики XKeen для VLESS + Reality - это важная часть для разделения трафика по устройствам:</p>
+            </div>
+            <p>Создаём политику с названием <b>XKeen</b> жмем <b>Сохранить</b> нажимаем на политику XKeen и отмечаем галочкой наше подключение к интернету, например: Ethernet-подключение и <b>Сохраняем</b></p>
+            <div class="content-image"><img src="/uploads/xkeen.png" alt="XKeen" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <p>Создадим отдельную сеть Wi-Fi под политику XKeen, чтобы все устройства подключенные к этой сети использовали VLESS + Reality.</p>
+            <p>Переходим в раздел <b>Wi-Fi</b> и создаём новую сеть Wi-Fi с названием например: <b>Keenetic-VPN</b> и указываем политику <b>XKeen</b> и <b>Сохраняем</b></p>
+            <div class="content-image"><img src="/uploads/xkeen_wifi.png" alt="XKeen Wi-Fi" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <div class="content-image"><img src="/uploads/xkeen_wifi2.png" alt="XKeen Wi-Fi 2" style="max-width:800px;width:100%;border-radius:12px;"></div>
+            <p>Теперь все устройства подключенные к сети Wi-Fi <b>Keenetic-VPN</b> будут использовать VLESS + Reality через роутер Keenetic.</p>
+            <p>Переходим к Шагу 6</p>
+        </div>
+
+        <!-- Шаг 6 -->
+        <div class="step-block">
+            <h2><span class="step-badge">Шаг 6</span> Тестовый запуск</h2>
+            <p>Открываем PuTTY или Termius, вводим команду:</p>
+
+            <div class="code-block"><pre><code>xkeen -start</code></pre></div>
+
+            <p>Если нет ошибок — откройте ваш браузер наберите адрес например: <code><a href="https://youtube.com" target="_blank">YouTube.com</a></code> и проверьте, открывается ли сайт.</p>
+
+            <div class="info-box">
+                <strong>💡 Проверка:</strong> Откройте в браузере сайт для проверки IP (например, <code><a href="https://2ip.ru" target="_blank">2ip.ru</a></code>). Ваш IP-адрес должен измениться на IP VPN-сервера.
+            </div>
+            <p>Если нужно чтобы VLESS + Reality работал выборочно, RU домены открывались без VPN, а все остальное через VPN, то нужно скачать файл <b>05_routing.json</b> и заменить его в папке <b>/etc/xray/configs/</b></p>
+            <details class="spoiler-block"><summary>Скачать 05_routing.json</summary>
+            <div class="spoiler-content"><p>Скачиваем файл: <a href="https://disk.yandex.ru/d/LfJ1QhcWqEVZjw" target="_blank">05_routing.json</a></p></div></details>
+        </div>
+
+        <!-- Готово -->
+        <div class="cta-box">
+            <h3>🎉 Готово! VLESS + Reality настроен на Keenetic</h3>
+            <p>Все устройства в вашей сети теперь защищены. Трафик маскируется под обычный HTTPS.</p>
+            <a href="/faq/" class="btn btn-black">❓ Частые вопросы</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

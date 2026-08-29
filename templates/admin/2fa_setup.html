@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Настройка 2FA — Админ-панель CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4">
+</head>
+<body class="admin-body">
+    <canvas id="stars-canvas"></canvas>
+    <div class="admin-container">
+        <div class="admin-login-card" style="max-width:460px;">
+            <div class="admin-login-header">
+                <h2>🔐 Двухфакторная аутентификация</h2>
+                <p>Google Authenticator</p>
+            </div>
+
+            <div id="setupStatus" class="form-error" style="display:none;"></div>
+
+            <div id="setupStep1">
+                <p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1rem;">
+                    1. Установите <strong>Google Authenticator</strong> на телефон<br>
+                    2. Отсканируйте QR-код или введите ключ вручную<br>
+                    3. Введите 6-значный код для подтверждения
+                </p>
+                <button class="btn btn-orange btn-full" id="startBtn">📱 Сгенерировать QR-код</button>
+            </div>
+
+            <div id="setupStep2" style="display:none;">
+                <div style="text-align:center;margin-bottom:1rem;">
+                    <img id="qrImage" src="" alt="QR-код 2FA" style="max-width:200px;border-radius:8px;">
+                </div>
+                <div class="form-group" style="margin-bottom:1rem;">
+                    <label for="secretKey">Секретный ключ (введите вручную при необходимости)</label>
+                    <input type="text" id="secretKey" readonly style="font-family:var(--mono);font-size:0.8rem;text-align:center;">
+                </div>
+                <div class="form-group" style="margin-bottom:1rem;">
+                    <label for="confirmCode">Код из приложения</label>
+                    <input type="text" id="confirmCode" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                </div>
+                <button class="btn btn-orange btn-full" id="confirmBtn">✅ Подтвердить и включить 2FA</button>
+                <button class="btn btn-black btn-full" id="cancelBtn" style="margin-top:0.5rem;">← Отмена</button>
+            </div>
+
+            <div id="setupStep3" style="display:none;">
+                <div style="text-align:center;padding:1rem 0;">
+                    <div style="font-size:3rem;margin-bottom:0.5rem;">✅</div>
+                    <h3 style="color:var(--black);">2FA включён!</h3>
+                    <p style="color:var(--gray-500);font-size:0.9rem;">Теперь при входе потребуется код из Google Authenticator.</p>
+                </div>
+                <a href="/admin/dashboard/" class="btn btn-orange btn-full">📊 Перейти в дашборд</a>
+            </div>
+
+            <a href="/admin/dashboard/" class="admin-back-link">← Назад в дашборд</a>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/stars.js') }}"></script>
+    <script>
+        var statusEl = document.getElementById('setupStatus');
+
+        function showError(msg) {
+            statusEl.textContent = msg;
+            statusEl.style.display = 'block';
+        }
+        function hideError() {
+            statusEl.style.display = 'none';
+        }
+
+        // Шаг 1 → Шаг 2: генерация секрета
+        document.getElementById('startBtn').addEventListener('click', function() {
+            hideError();
+            this.textContent = 'Генерация...';
+            this.disabled = true;
+
+            fetch('/admin/2fa/setup/start/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.ok) {
+                        document.getElementById('qrImage').src = d.qr_b64;
+                        document.getElementById('secretKey').value = d.secret;
+                        document.getElementById('setupStep1').style.display = 'none';
+                        document.getElementById('setupStep2').style.display = 'block';
+                    } else {
+                        showError(d.error || 'Ошибка генерации');
+                        this.textContent = '📱 Сгенерировать QR-код';
+                        this.disabled = false;
+                    }
+                }.bind(this))
+                .catch(function(e) {
+                    showError('Ошибка соединения');
+                    this.textContent = '📱 Сгенерировать QR-код';
+                    this.disabled = false;
+                }.bind(this));
+        });
+
+        // Шаг 2: подтверждение кода
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            hideError();
+            this.textContent = 'Проверка...';
+            this.disabled = true;
+
+            var code = document.getElementById('confirmCode').value.trim();
+            if (!code) { showError('Введите код'); this.textContent = '✅ Подтвердить и включить 2FA'; this.disabled = false; return; }
+
+            fetch('/admin/2fa/setup/confirm/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.ok) {
+                    document.getElementById('setupStep2').style.display = 'none';
+                    document.getElementById('setupStep3').style.display = 'block';
+                } else {
+                    showError(d.error || 'Неверный код');
+                    this.textContent = '✅ Подтвердить и включить 2FA';
+                    this.disabled = false;
+                }
+            }.bind(this))
+            .catch(function(e) {
+                showError('Ошибка соединения');
+                this.textContent = '✅ Подтвердить и включить 2FA';
+                this.disabled = false;
+            }.bind(this));
+        });
+
+        // Отмена
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            document.getElementById('setupStep2').style.display = 'none';
+            document.getElementById('setupStep1').style.display = 'block';
+            document.getElementById('startBtn').textContent = '📱 Сгенерировать QR-код';
+            document.getElementById('startBtn').disabled = false;
+            hideError();
+        });
+    </script>
+</body>
+</html>

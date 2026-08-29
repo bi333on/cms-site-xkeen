@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% block title %}Генератор конфига Xray для Keenetic — VLESS + Reality{% endblock %}
+{% block description %}Бесплатный онлайн-генератор конфига Xray для роутеров Keenetic. Вставьте ссылку подписки vless://, vmess://, trojan:// или ss:// и получите готовый 04_outbounds.json.json для Xray-core.{% endblock %}
+{% block keywords %}генератор конфига xray keenetic, xray config generator, vless reality конфиг keenetic, генерация outbounds xray, vless vmess trojan ss конфиг{% endblock %}
+
+{% block content %}
+<section class="hero hero-sm">
+    <div class="container">
+        <div class="breadcrumbs">
+            <a href="/">Главная</a><span class="sep">›</span><span>Генератор конфига</span>
+        </div>
+        <h1 class="hero-title">Генератор конфига <span class="accent">Xray</span></h1>
+        <p class="hero-subtitle">Вставьте ссылку подписки и получите готовый <code>04_outbounds.json</code> (outbounds) для Xray-core на роутере Keenetic.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="generator-card">
+            <div class="form-group">
+                <label for="genUrl">🔗 Ссылка подписки</label>
+                <input type="text" id="genUrl" placeholder="vless://uuid@server:443...">
+                <p style="font-size:0.8rem;color:var(--gray-400);margin-top:0.35rem;">
+                    Поддерживаются: <code>vless://</code>, <code>vmess://</code>, <code>trojan://</code>, <code>ss://</code>
+                </p>
+            </div>
+
+            <div class="generator-actions">
+                <button class="btn btn-orange" id="genBtn">⚙️ Сгенерировать</button>
+                <button class="btn btn-outline" id="downloadBtn">💾 Скачать файл</button>
+            </div>
+
+            <div id="genWarnings" class="warning-box" style="display:none;"></div>
+
+            <div class="form-group">
+                <label for="genOutput">Конфиг Xray (вставьте в <code>04_outbounds.json</code>)</label>
+                <textarea id="genOutput" rows="22" readonly spellcheck="false"
+                    style="font-family:var(--mono);font-size:0.82rem;background:var(--black);color:#E5E7EB;border:none;border-radius:var(--radius);line-height:1.55;"
+                    placeholder='{"outbounds": [...]}'></textarea>
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;margin-top:2rem;">
+            <a href="/setup/#generators" class="btn btn-orange">🚀 Вернуться к настройке Keenetic</a>
+        </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    'use strict';
+
+    var outputEl = document.getElementById('genOutput');
+    var warningsEl = document.getElementById('genWarnings');
+
+    function decodeBase64(str) {
+        str = str.replace(/-/g, '+').replace(/_/g, '/');
+        while (str.length % 4) str += '=';
+        var bin = atob(str);
+        try {
+            return decodeURIComponent(escape(bin));
+        } catch (e) {
+            return bin;
+        }
+    }
+
+    function baseOutbounds() {
+        return [
+            { tag: 'direct', protocol: 'freedom' },
+            { tag: 'block', protocol: 'blackhole', settings: { response: { type: 'http' } } }
+        ];
+    }
+
+    function buildVmess(vm) {
+        var outbound = {
+            tag: 'proxy',
+            protocol: 'vmess',
+            settings: {
+                vnext: [{
+                    address: vm.add || '',
+                    port: parseInt(vm.port, 10) || 0,
+                    users: [{
+                        id: vm.id || '',
+                        alterId: vm.aid || 0,
+                        security: vm.scy || 'auto',
+                        level: 0
+                    }]
+                }]
+            },
+            streamSettings: {
+                network: vm.net || 'tcp',
+                security: vm.tls === 'tls' ? 'tls' : 'none'
+            }
+        };
+
+        if (vm.tls === 'tls') {
+            outbound.streamSettings.tlsSettings = {
+                allowInsecure: true,
+                serverName: vm.sni || '',
+                fingerprint: vm.fp || ''
+            };
+        }
+        if (vm.net === 'ws') {
+            outbound.streamSettings.wsSettings = {
+                path: vm.path || '',
+                headers: { Host: vm.host || '' }
+            };
+        }
+        if (vm.net === 'h2') {
+            outbound.streamSettings.httpSettings = {
+                host: vm.host ? vm.host.split(',') : [],
+                path: vm.path || ''
+            };
+        }
+
+        return { outbounds: [outbound].concat(baseOutbounds()) };
+    }
+
+    function buildVless(userId, address, port, params) {
+        var network = params.get('type') || 'tcp';
+        var security = params.get('security') || '';
+
+        var outbound = {
+            tag: 'vless-reality',
+            protocol: 'vless',
+            settings: {
+                vnext: [{
+                    address: address,
+                    port: port,
+                    users: [{
+                        id: userId,
+                        flow: params.get('flow') || '',
+                        encryption: 'none',
+                        level: 0
+                    }]
+                }]
+            },
+            streamSettings: {
+                network: network,
+                security: security
+            }
+        };
+
+        if (security === 'reality') {
+            outbound.streamSettings.realitySettings = {
+                publicKey: params.get('pbk') || '',
+                fingerprint: params.get('fp') || '',
+                serverName: params.get('sni') || '',
+                shortId: params.get('sid') || '',
+                spiderX: params.get('spx') || '/'
+            };
+        }
+        if (network === 'ws') {
+            outbound.streamSettings.wsSettings = {
+                path: params.get('path') || '',
+                headers: { Host: params.get('host') || '' }
+            };
+        }
+        if (network === 'grpc') {
+            outbound.streamSettings.grpcSettings = {
+                serviceName: params.get('serviceName') || '',
+                multiMode: params.get('mode') === 'multi'
+            };
+        }
+
+        return { outbounds: [outbound].concat(baseOutbounds()) };
+    }
+
+    function buildTrojan(password, address, port, params) {
+        var network = params.get('type') || 'tcp';
+
+        var outbound = {
+            tag: 'vless-reality',
+            protocol: 'trojan',
+            settings: {
+                servers: [{
+                    address: address,
+                    port: port,
+                    password: password,
+                    flow: params.get('flow') || '',
+                    method: 'chacha20-poly1305',
+                    ota: false,
+                    level: 0
+                }]
+            },
+            streamSettings: {
+                network: network,
+                security: params.get('security') || 'tls',
+                tlsSettings: {
+                    alpn: params.get('alpn') ? params.get('alpn').split(',') : [],
+                    fingerprint: params.get('fp') || '',
+                    serverName: params.get('sni') || '',
+                    allowInsecure: true,
+                    show: false
+                }
+            }
+        };
+
+        if (network === 'ws') {
+            outbound.streamSettings.wsSettings = {
+                path: params.get('path') || '',
+                headers: { Host: params.get('host') || '' }
+            };
+        }
+
+        return { outbounds: [outbound].concat(baseOutbounds()) };
+    }
+
+    function buildShadowsocks(userInfo, address, port, params) {
+        var method = params.get('method') || '';
+        var password = params.get('password') || '';
+
+        if (userInfo && !method) {
+            try {
+                var parts = decodeBase64(userInfo).split(':');
+                method = parts[0];
+                password = parts.slice(1).join(':');
+            } catch (e) {}
+        }
+
+        var outbound = {
+            tag: 'ss',
+            protocol: 'shadowsocks',
+            settings: {
+                servers: [{
+                    address: address,
+                    port: port,
+                    method: method || 'aes-256-gcm',
+                    password: password || ''
+                }]
+            }
+        };
+
+        return { outbounds: [outbound].concat(baseOutbounds()) };
+    }
+
+    function showWarnings(list) {
+        if (list && list.length) {
+            warningsEl.innerHTML = list.join('<br>');
+            warningsEl.style.display = 'block';
+        } else {
+            warningsEl.style.display = 'none';
+        }
+    }
+
+    function generate() {
+        var url = document.getElementById('genUrl').value.trim();
+        outputEl.value = '';
+        showWarnings([]);
+
+        if (!url) {
+            outputEl.value = 'Введите ссылку подписки.';
+            return;
+        }
+
+        var warnings = [];
+        var config = null;
+
+        // vmess://
+        if (url.indexOf('vmess://') === 0) {
+            try {
+                var payload = url.substring(8);
+                var vm = JSON.parse(decodeBase64(payload));
+                config = buildVmess(vm);
+            } catch (e) {
+                outputEl.value = 'Ошибка разбора vmess-ссылки.';
+                return;
+            }
+        } else {
+            var m = url.match(/^([a-z]+):\/\/([^@/]+)@([^:]+):(\d+)(\/[^?#]*)?(\?.*)?$/i);
+            if (!m) {
+                outputEl.value = 'Неверный формат ссылки.';
+                return;
+            }
+
+            var protocol = m[1].toLowerCase();
+            var userInfo = m[2];
+            var address = m[3];
+            var port = parseInt(m[4], 10);
+            var params = new URLSearchParams(m[6] || '');
+
+            if (port !== 443 && protocol !== 'ss') {
+                warnings.push('⚠️ Рекомендуется использовать порт 443.');
+            }
+
+            if (protocol === 'vless') {
+                config = buildVless(userInfo, address, port, params);
+            } else if (protocol === 'trojan') {
+                config = buildTrojan(userInfo, address, port, params);
+            } else if (protocol === 'ss') {
+                config = buildShadowsocks(userInfo, address, port, params);
+            } else {
+                outputEl.value = 'Протокол не поддерживается: ' + protocol;
+                return;
+            }
+        }
+
+        if (config) {
+            outputEl.value = JSON.stringify(config, null, 4);
+            showWarnings(warnings);
+        }
+    }
+
+    function downloadOutput() {
+        var text = outputEl.value;
+        if (!text) { alert('Сначала сгенерируйте конфиг.'); return; }
+        var blob = new Blob([text], { type: 'application/json' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = '04_outbounds.json';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    document.getElementById('genBtn').addEventListener('click', generate);
+    document.getElementById('downloadBtn').addEventListener('click', downloadOutput);
+
+    // Ctrl+Enter для генерации
+    document.getElementById('genUrl').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generate();
+    });
+})();
+</script>
+{% endblock %}

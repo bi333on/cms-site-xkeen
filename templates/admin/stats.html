@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Статистика посещений — Админ-панель CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-logo"><a href="/">⚡ VLESS-Keenetic</a></div>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard/" class="admin-nav-item"><span class="nav-icon">📊</span> Дашборд</a>
+                <a href="/admin/stats/" class="admin-nav-item active"><span class="nav-icon">📈</span> Статистика</a>
+                <a href="/admin/messages/" class="admin-nav-item"><span class="nav-icon">💬</span> Сообщения</a>
+                <a href="/admin/users/" class="admin-nav-item"><span class="nav-icon">👥</span> Пользователи</a>
+                <a href="/admin/pages/" class="admin-nav-item"><span class="nav-icon">📄</span> Страницы</a>
+                <a href="/admin/blocks/" class="admin-nav-item"><span class="nav-icon">🧱</span> Блоки</a>
+                <a href="/admin/modules/" class="admin-nav-item"><span class="nav-icon">📦</span> Модули</a>
+                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout"><span class="nav-icon">🚪</span> Выйти</a>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h1>📈 Статистика посещений</h1>
+                <span class="admin-user-badge">Данные обновляются при каждом визите</span>
+            </header>
+            <div class="admin-content">
+                <!-- Сводка -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👁</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ total }}</span>
+                            <span class="stat-label">Всего визитов</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-green">
+                        <div class="stat-icon">🌐</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ unique_ips }}</span>
+                            <span class="stat-label">Уникальных IP</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-orange">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ today_visits }}</span>
+                            <span class="stat-label">За сегодня</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Топ страниц и городов -->
+                <div class="stats-columns">
+                    <div class="admin-card" style="margin-bottom:0;">
+                        <h3>📄 Топ страниц</h3>
+                        {% if top_pages %}
+                        <table class="admin-table">
+                            <thead><tr><th>Страница</th><th>Визитов</th></tr></thead>
+                            <tbody>
+                                {% for path, cnt in top_pages %}
+                                <tr>
+                                    <td><code>{{ path }}</code></td>
+                                    <td><strong>{{ cnt }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p style="color:var(--gray-400);">Нет данных</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="admin-card" style="margin-bottom:0;">
+                        <h3>🌍 Топ городов</h3>
+                        {% if top_cities %}
+                        <table class="admin-table">
+                            <thead><tr><th>Город</th><th>Визитов</th></tr></thead>
+                            <tbody>
+                                {% for city, cnt in top_cities %}
+                                <tr>
+                                    <td>{{ city or '—' }}</td>
+                                    <td><strong>{{ cnt }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p style="color:var(--gray-400);">Нет данных (геолокация появится после первых визитов)</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Объединённые визиты -->
+                <div class="admin-card">
+                    <h3>🕒 Визиты по IP и странице (объединённые, до 200)</h3>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>IP</th>
+                                    <th>Город / Страна</th>
+                                    <th>Страница</th>
+                                    <th>Кол-во визитов</th>
+                                    <th>Последний визит</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if grouped_visits %}
+                                    {% for ip, path, cnt, last_seen in grouped_visits %}
+                                    <tr>
+                                        <td><code>{{ ip }}</code></td>
+                                        <td>
+                                            {% set geo = geo_cache.get(ip, ('', '')) %}
+                                            {% if geo[0] %}{{ geo[0] }}{% if geo[1] %}, {{ geo[1] }}{% endif %}{% else %}—{% endif %}
+                                        </td>
+                                        <td><code>{{ path }}</code></td>
+                                        <td><strong>{{ cnt }}</strong></td>
+                                        <td>{{ last_seen.strftime('%d.%m.%Y %H:%M') if last_seen else '—' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="5" class="loading-cell">Пока нет визитов</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Сообщения пользователям — Админ-панель CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=5">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-logo"><a href="/">⚡ VLESS-Keenetic</a></div>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard/" class="admin-nav-item"><span class="nav-icon">📊</span> Дашборд</a>
+                <a href="/admin/stats/" class="admin-nav-item"><span class="nav-icon">📈</span> Статистика</a>
+                <a href="/admin/messages/" class="admin-nav-item active"><span class="nav-icon">💬</span> Сообщения</a>
+                <a href="/admin/users/" class="admin-nav-item"><span class="nav-icon">👥</span> Пользователи</a>
+                <a href="/admin/pages/" class="admin-nav-item"><span class="nav-icon">📄</span> Страницы</a>
+                <a href="/admin/blocks/" class="admin-nav-item"><span class="nav-icon">🧱</span> Блоки</a>
+                <a href="/admin/modules/" class="admin-nav-item"><span class="nav-icon">📦</span> Модули</a>
+                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout"><span class="nav-icon">🚪</span> Выйти</a>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h1>💬 Сообщения пользователям</h1>
+                <span class="admin-user-badge">Показываются на сайте при входе</span>
+            </header>
+            <div class="admin-content">
+                <!-- Форма создания/редактирования -->
+                <div class="admin-card">
+                    <h3 id="formTitle">➕ Новое сообщение</h3>
+                    <div id="msgStatus" class="form-error" style="display:none;margin-bottom:1rem;"></div>
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label for="msgTitle">Заголовок</label>
+                        <input type="text" id="msgTitle" placeholder="Например: Важное обновление">
+                    </div>
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label for="msgContent">Текст сообщения</label>
+                        <textarea id="msgContent" rows="5" placeholder="Текст, который увидят пользователи..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="msgRepeat">Период повторного показа (часов)</label>
+                            <input type="number" id="msgRepeat" value="3" min="0" style="width:120px;">
+                        </div>
+                        <div class="form-group">
+                            <label for="msgDelay">Отсрочка показа (секунд)</label>
+                            <input type="number" id="msgDelay" value="0" min="0" style="width:120px;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="msgActive">
+                            <label for="msgActive">✅ Показывать на сайте</label>
+                        </div>
+                        <div class="editor-actions">
+                            <button class="btn btn-orange" id="saveMsgBtn">💾 Сохранить</button>
+                            <button class="btn btn-black" id="cancelEditBtn" style="display:none;">Отмена</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Список сообщений -->
+                <div class="admin-card">
+                    <h3>📋 Список сообщений</h3>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Заголовок</th>
+                                    <th>Текст (превью)</th>
+                                    <th>Статус</th>
+                                    <th>Создано</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if messages %}
+                                    {% for m in messages %}
+                                    <tr>
+                                        <td>{{ m.id }}</td>
+                                        <td><strong>{{ m.title }}</strong></td>
+                                        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ m.content[:80] }}</td>
+                                        <td>
+                                            <span class="status-badge {{ 'status-active' if m.is_active else 'status-inactive' }}">
+                                                {{ 'Показывается' if m.is_active else 'Скрыто' }}
+                                            </span>
+                                        </td>
+                                        <td>{{ m.created_at.strftime('%d.%m.%Y %H:%M') if m.created_at else '—' }}</td>
+                                        <td>
+                                            <button class="btn-table btn-table-toggle" onclick="editMessage({{ m.id }}, '{{ m.title | e }}', '{{ m.content | e }}', {{ 'true' if m.is_active else 'false' }}, {{ m.repeat_hours or 3 }}, {{ m.show_delay or 0 }})">✏️</button>
+                                            <button class="btn-table btn-table-toggle" onclick="toggleMessage({{ m.id }})">{{ '🔒' if m.is_active else '✅' }}</button>
+                                            <button class="btn-table btn-table-delete" onclick="deleteMessage({{ m.id }})">🗑</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="6" class="loading-cell">Нет сообщений</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        var editingId = null;
+
+        function showStatus(msg, isError) {
+            var el = document.getElementById('msgStatus');
+            el.textContent = msg;
+            el.style.display = 'block';
+            el.style.background = isError ? '#FFF0F0' : '#E8F5E9';
+            el.style.color = isError ? '#C62828' : '#2E7D32';
+        }
+        function hideStatus() {
+            document.getElementById('msgStatus').style.display = 'none';
+        }
+
+        function resetForm() {
+            editingId = null;
+            document.getElementById('formTitle').textContent = '➕ Новое сообщение';
+            document.getElementById('msgTitle').value = '';
+            document.getElementById('msgContent').value = '';
+            document.getElementById('msgActive').checked = false;
+            document.getElementById('msgRepeat').value = 3;
+            document.getElementById('msgDelay').value = 0;
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            hideStatus();
+        }
+
+        document.getElementById('saveMsgBtn').addEventListener('click', function() {
+            var data = {
+                title: document.getElementById('msgTitle').value.trim(),
+                content: document.getElementById('msgContent').value.trim(),
+                is_active: document.getElementById('msgActive').checked,
+                repeat_hours: parseInt(document.getElementById('msgRepeat').value) || 3,
+                show_delay: parseInt(document.getElementById('msgDelay').value) || 0,
+            };
+            if (!data.title || !data.content) {
+                showStatus('Заполните заголовок и текст', true);
+                return;
+            }
+            hideStatus();
+
+            var url = editingId ? '/admin/messages/' + editingId + '/edit/' : '/admin/messages/new/';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.ok) location.reload();
+                else showStatus(d.error || 'Ошибка', true);
+            })
+            .catch(function(e) { showStatus('Ошибка соединения', true); });
+        });
+
+        document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+
+        function editMessage(id, title, content, isActive, repeatHours, showDelay) {
+            editingId = id;
+            document.getElementById('formTitle').textContent = '✏️ Редактирование #' + id;
+            document.getElementById('msgTitle').value = title;
+            document.getElementById('msgContent').value = content;
+            document.getElementById('msgActive').checked = isActive;
+            document.getElementById('msgRepeat').value = repeatHours;
+            document.getElementById('msgDelay').value = showDelay;
+            document.getElementById('cancelEditBtn').style.display = 'inline-block';
+            hideStatus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMessage(id) {
+            fetch('/admin/messages/' + id + '/toggle/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { if (d.ok) location.reload(); });
+        }
+
+        function deleteMessage(id) {
+            if (!confirm('Удалить сообщение?')) return;
+            fetch('/admin/messages/' + id + '/delete/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { if (d.ok) location.reload(); });
+        }
+    </script>
+</body>
+</html>

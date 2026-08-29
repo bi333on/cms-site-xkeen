@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Вход в админ-панель — VLESS-Keenetic CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+    <canvas id="stars-canvas"></canvas>
+    <div class="admin-container">
+        <div class="admin-login-card">
+            <div class="admin-login-header">
+                <h2>⚡ Админ-панель</h2>
+                <p>VLESS-Keenetic CMS</p>
+            </div>
+            <div id="loginError" class="form-error" style="display:none;"></div>
+            <!-- Шаг 1: логин и пароль -->
+            <form class="admin-login-form" id="loginForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="username">Логин</label>
+                    <input type="text" id="username" placeholder="admin" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" placeholder="••••••" required>
+                </div>
+                <button type="submit" class="btn btn-orange btn-full" id="loginBtn">Войти</button>
+            </form>
+            <!-- Шаг 2: код 2FA -->
+            <form class="admin-login-form" id="twofaForm" onsubmit="return false;" style="display:none;">
+                <div class="form-group">
+                    <label for="twofaCode">Код из Google Authenticator</label>
+                    <input type="text" id="twofaCode" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
+                </div>
+                <button type="submit" class="btn btn-orange btn-full" id="twofaBtn">Подтвердить</button>
+                <button type="button" class="btn btn-black btn-full" id="backBtn" style="margin-top:0.5rem;">← Назад</button>
+            </form>
+            <a href="/" class="admin-back-link">← На главную</a>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/stars.js') }}"></script>
+    {% if config.RECAPTCHA_SITE_KEY and config.RECAPTCHA_SECRET_KEY %}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ config.RECAPTCHA_SITE_KEY }}"></script>
+    {% endif %}
+    <script>
+        var RECAPTCHA_SITE_KEY = "{{ config.RECAPTCHA_SITE_KEY }}";
+
+        function doLogin(recaptchaToken) {
+            var btn = document.getElementById('loginBtn');
+            var err = document.getElementById('loginError');
+            btn.textContent = 'Вход...';
+            btn.disabled = true;
+            err.style.display = 'none';
+
+            var body = {
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value
+            };
+            if (recaptchaToken) {
+                body.recaptcha_token = recaptchaToken;
+            }
+
+            fetch('/admin/login/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.ok) {
+                    if (d.needs_2fa) {
+                        // Показываем шаг 2FA
+                        document.getElementById('loginForm').style.display = 'none';
+                        document.getElementById('twofaForm').style.display = 'flex';
+                        document.getElementById('twofaCode').focus();
+                        btn.textContent = 'Войти';
+                        btn.disabled = false;
+                    } else {
+                        window.location.href = d.redirect;
+                    }
+                } else {
+                    err.textContent = d.error || 'Ошибка входа';
+                    err.style.display = 'block';
+                    btn.textContent = 'Войти';
+                    btn.disabled = false;
+                }
+            })
+            .catch(function(e) {
+                err.textContent = 'Ошибка соединения';
+                err.style.display = 'block';
+                btn.textContent = 'Войти';
+                btn.disabled = false;
+            });
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            if (RECAPTCHA_SITE_KEY) {
+                grecaptcha.ready(function() {
+                    grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: 'admin_login'}).then(function(token) {
+                        doLogin(token);
+                    });
+                });
+            } else {
+                doLogin(null);
+            }
+        });
+
+        // Шаг 2FA: проверка кода
+        document.getElementById('twofaForm').addEventListener('submit', function() {
+            var btn = document.getElementById('twofaBtn');
+            var err = document.getElementById('loginError');
+            btn.textContent = 'Проверка...';
+            btn.disabled = true;
+            err.style.display = 'none';
+
+            fetch('/admin/2fa/verify/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: document.getElementById('twofaCode').value.trim() })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.ok) { window.location.href = d.redirect; }
+                else {
+                    err.textContent = d.error || 'Неверный код';
+                    err.style.display = 'block';
+                    btn.textContent = 'Подтвердить';
+                    btn.disabled = false;
+                }
+            })
+            .catch(function(e) {
+                err.textContent = 'Ошибка соединения';
+                err.style.display = 'block';
+                btn.textContent = 'Подтвердить';
+                btn.disabled = false;
+            });
+        });
+
+        // Кнопка "Назад"
+        document.getElementById('backBtn').addEventListener('click', function() {
+            document.getElementById('twofaForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'flex';
+            document.getElementById('loginError').style.display = 'none';
+        });
+    </script>
+</body>
+</html>

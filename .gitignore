@@ -1,0 +1,17 @@
+# Секреты — не коммитить
+.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# База данных SQLite (создаётся на месте)
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Локальные настройки редактора
+.vscode/
+.idea/

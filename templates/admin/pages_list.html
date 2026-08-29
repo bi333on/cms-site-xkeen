@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Управление страницами — Админ-панель CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-logo"><a href="/">⚡ VLESS-Keenetic</a></div>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard/" class="admin-nav-item"><span class="nav-icon">📊</span> Дашборд</a>
+                <a href="/admin/stats/" class="admin-nav-item"><span class="nav-icon">📈</span> Статистика</a>
+                <a href="/admin/messages/" class="admin-nav-item"><span class="nav-icon">💬</span> Сообщения</a>
+                <a href="/admin/users/" class="admin-nav-item"><span class="nav-icon">👥</span> Пользователи</a>
+                <a href="/admin/pages/" class="admin-nav-item active"><span class="nav-icon">📄</span> Страницы</a>
+                <a href="/admin/blocks/" class="admin-nav-item"><span class="nav-icon">🧱</span> Блоки</a>
+                <a href="/admin/modules/" class="admin-nav-item"><span class="nav-icon">📦</span> Модули</a>
+                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout"><span class="nav-icon">🚪</span> Выйти</a>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h1>📄 Управление страницами</h1>
+                <div class="admin-topbar-actions">
+                    <a href="/admin/pages/new/" class="btn btn-orange btn-sm">+ Новая страница</a>
+                </div>
+            </header>
+            <div class="admin-content">
+                <div class="admin-card">
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Заголовок</th>
+                                    <th>Slug</th>
+                                    <th>Доступ</th>
+                                    <th>Статус</th>
+                                    <th>Порядок</th>
+                                    <th>Обновлено</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if pages %}
+                                    {% for p in pages %}
+                                    <tr>
+                                        <td>{{ p.id }}</td>
+                                        <td><strong>{{ p.title }}</strong></td>
+                                        <td><code>/{{ p.slug }}/</code></td>
+                                        <td>
+                                            <span class="status-badge {{ 'status-active' if p.access_level == 'public' else 'status-warning' if p.access_level == 'auth_only' else 'status-inactive' }}">
+                                                {{ '🌐 Всем' if p.access_level == 'public' else '🔒 Авториз.' if p.access_level == 'auth_only' else '👑 Админ' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge {{ 'status-active' if p.is_published else 'status-inactive' }}">
+                                                {{ 'Опубликована' if p.is_published else 'Черновик' }}
+                                            </span>
+                                            {% if p.noindex %}
+                                            <span class="status-badge status-warning" style="margin-left:0.25rem;">🚫 noindex</span>
+                                            {% endif %}
+                                            {% if p.show_in_menu %}
+                                            <span class="status-badge status-active" style="margin-left:0.25rem;">📋 меню</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ p.sort_order }}</td>
+                                        <td>{{ p.updated_at.strftime('%d.%m.%Y %H:%M') if p.updated_at else '—' }}</td>
+                                        <td>
+                                            <a href="/admin/pages/{{ p.id }}/edit/" class="btn-table btn-table-toggle">✏️</a>
+                                            {% if p.is_published %}
+                                                <a href="/{{ p.slug }}/" target="_blank" class="btn-table btn-table-toggle">👁</a>
+                                            {% endif %}
+                                            <button class="btn-table btn-table-delete" onclick="deletePage({{ p.id }}, '{{ p.title | e }}')">🗑</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="8" class="loading-cell">Нет страниц. <a href="/admin/pages/new/">Создать первую</a></td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function deletePage(id, title) {
+            if (!confirm('Удалить страницу «' + title + '»? Это действие необратимо.')) return;
+            fetch('/admin/pages/' + id + '/delete/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { if (d.ok) location.reload(); });
+        }
+    </script>
+</body>
+</html>
