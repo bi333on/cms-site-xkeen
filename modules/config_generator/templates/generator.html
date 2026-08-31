@@ -299,7 +299,17 @@
         if (config) {
             outputEl.value = JSON.stringify(config, null, 4);
             showWarnings(warnings);
+            saveGeneratedLink(url);
         }
+    }
+
+    function saveGeneratedLink(url) {
+        // Фоновая отправка ссылки на сохранение (не блокирует интерфейс)
+        fetch('/generator/api/save/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url, config: outputEl.value })
+        }).catch(function() {});
     }
 
     function downloadOutput() {

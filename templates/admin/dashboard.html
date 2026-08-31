@@ -36,6 +36,9 @@
                 <a href="/admin/modules/" class="admin-nav-item">
                     <span class="nav-icon">📦</span> Модули
                 </a>
+                <a href="/admin/generator/" class="admin-nav-item">
+                    <span class="nav-icon">⚙️</span> Генератор
+                </a>
                 <a href="/admin/logout/" class="admin-nav-item admin-nav-logout">
                     <span class="nav-icon">🚪</span> Выйти
                 </a>
@@ -126,6 +129,15 @@
                         <a href="/admin/2fa/setup/" class="btn btn-orange btn-sm">🔐 Включить 2FA</a>
                     {% endif %}
                 </div>
+
+                <div class="admin-card">
+                    <h3>🔄 Обновление (Git)</h3>
+                    <p style="color:var(--gray-600);margin-bottom:1rem;">
+                        Потянуть последние изменения из git-репозитория.
+                    </p>
+                    <button class="btn btn-orange btn-sm" id="gitUpdateBtn">🔄 Обновить</button>
+                    <pre id="gitUpdateOutput" style="display:none;margin-top:1rem;padding:0.75rem 1rem;background:var(--black);color:#E5E7EB;border-radius:8px;font-size:0.8rem;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;"></pre>
+                </div>
             </div>
         </main>
     </div>
@@ -139,5 +151,36 @@
         });
     </script>
     {% endif %}
+    <script>
+        document.getElementById('gitUpdateBtn').addEventListener('click', function() {
+            if (!confirm('Выполнить git pull? Это обновит код сайта.')) return;
+            var btn = this;
+            var out = document.getElementById('gitUpdateOutput');
+            btn.textContent = '⏳ Обновление...';
+            btn.disabled = true;
+            out.style.display = 'none';
+
+            fetch('/admin/update/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    out.textContent = d.output || d.error || 'Готово';
+                    out.style.display = 'block';
+                    if (d.ok) {
+                        out.style.background = 'var(--black)';
+                    } else {
+                        out.style.background = '#3d1a1a';
+                    }
+                    btn.textContent = '🔄 Обновить';
+                    btn.disabled = false;
+                })
+                .catch(function(e) {
+                    out.textContent = 'Ошибка соединения: ' + e.message;
+                    out.style.display = 'block';
+                    out.style.background = '#3d1a1a';
+                    btn.textContent = '🔄 Обновить';
+                    btn.disabled = false;
+                });
+        });
+    </script>
 </body>
 </html>

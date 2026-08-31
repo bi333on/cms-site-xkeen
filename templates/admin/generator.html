@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Генератор — Админ-панель CMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=8">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-logo"><a href="/">⚡ VLESS-Keenetic</a></div>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard/" class="admin-nav-item"><span class="nav-icon">📊</span> Дашборд</a>
+                <a href="/admin/stats/" class="admin-nav-item"><span class="nav-icon">📈</span> Статистика</a>
+                <a href="/admin/messages/" class="admin-nav-item"><span class="nav-icon">💬</span> Сообщения</a>
+                <a href="/admin/users/" class="admin-nav-item"><span class="nav-icon">👥</span> Пользователи</a>
+                <a href="/admin/pages/" class="admin-nav-item"><span class="nav-icon">📄</span> Страницы</a>
+                <a href="/admin/blocks/" class="admin-nav-item"><span class="nav-icon">🧱</span> Блоки</a>
+                <a href="/admin/modules/" class="admin-nav-item"><span class="nav-icon">📦</span> Модули</a>
+                <a href="/admin/generator/" class="admin-nav-item active"><span class="nav-icon">⚙️</span> Генератор</a>
+                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout"><span class="nav-icon">🚪</span> Выйти</a>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h1>⚙️ Генератор конфигов</h1>
+                <span class="admin-user-badge">Уникальные ссылки из формы на сайте</span>
+            </header>
+            <div class="admin-content">
+                <div class="admin-card">
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Протокол</th>
+                                    <th>Ссылка</th>
+                                    <th>Адрес</th>
+                                    <th>Пинг</th>
+                                    <th>Локация</th>
+                                    <th>Проверено</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if configs %}
+                                    {% for c in configs %}
+                                    <tr id="row{{ c.id }}">
+                                        <td>{{ c.id }}</td>
+                                        <td><span class="status-badge status-warning">{{ c.protocol or '—' }}</span></td>
+                                        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ c.url }}"><code>{{ c.url[:60] }}{% if c.url|length > 60 %}…{% endif %}</code></td>
+                                        <td><code>{{ c.address or '—' }}{% if c.port %}:{{ c.port }}{% endif %}</code></td>
+                                        <td id="ping{{ c.id }}">
+                                            {% if c.ping_ok %}
+                                            <span class="status-badge status-active">✅ {{ c.ping_time }} мс</span>
+                                            {% else %}
+                                            <span class="status-badge status-inactive">❌ недоступен</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if c.city %}{{ c.city }}{% if c.country %}, {{ c.country }}{% endif %}{% else %}—{% endif %}
+                                        </td>
+                                        <td>{{ c.checked_at.strftime('%d.%m.%Y %H:%M') if c.checked_at else '—' }}</td>
+                                        <td>
+                                            <button class="btn-table btn-table-toggle" onclick="recheck({{ c.id }})">🔄</button>
+                                            <button class="btn-table btn-table-delete" onclick="deleteCfg({{ c.id }})">🗑</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="8" class="loading-cell">Пока нет сгенерированных конфигов</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="color:var(--gray-400);font-size:0.8rem;margin-top:0.75rem;">
+                        Конфиги сохраняются автоматически при генерации на странице <a href="/generator/" target="_blank">/generator/</a>. Дубликаты ссылок не записываются.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function recheck(id) {
+            fetch('/admin/generator/' + id + '/recheck/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.ok) location.reload();
+                });
+        }
+        function deleteCfg(id) {
+            if (!confirm('Удалить запись?')) return;
+            fetch('/admin/generator/' + id + '/delete/', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { if (d.ok) location.reload(); });
+        }
+    </script>
+</body>
+</html>

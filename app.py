@@ -5,6 +5,8 @@ import re
 import io
 import os
 import base64
+import socket
+import time
 import ipaddress
 from datetime import datetime, timezone
 from functools import wraps
@@ -26,7 +28,7 @@ import qrcode
 from sqlalchemy import func
 
 from config import config
-from models import db, User, AdminUser, Page, CmsModule, EditorBlock, VisitStat, SiteMessage
+from models import db, User, AdminUser, Page, CmsModule, EditorBlock, VisitStat, SiteMessage, GeneratedConfig
 from modules import module_registry, BaseModule
 
 # ---------------------------------------------------------------------------
@@ -336,6 +338,61 @@ def resolve_geo(ip: str) -> tuple[str, str]:
     except Exception:
         pass
     return "", ""
+
+
+def ping_tcp(host: str, port: int, timeout: int = 5) -> tuple[bool, int | None]:
+    """TCP-пинг: пробует подключиться к host:port. Возвращает (ok, задержка_мс)."""
+    if not host or not port:
+        return False, None
+    start = time.time()
+    try:
+        sock = socket.create_connection((host, port), timeout=timeout)
+        latency = int((time.time() - start) * 1000)
+        sock.close()
+        return True, latency
+    except Exception:
+        return False, None
+
+
+def resolve_host_to_ip(host: str) -> str | None:
+    """Резолвит домен в IP-адрес."""
+    try:
+        return socket.gethostbyname(host)
+    except Exception:
+        return None
+
+
+def geolocate_address(address: str) -> tuple[str, str]:
+    """Определяет город/страну по адресу (домен резолвится в IP)."""
+    if not address:
+        return "", ""
+    ip = address
+    try:
+        ipaddress.ip_address(address)
+    except ValueError:
+        resolved = resolve_host_to_ip(address)
+        if not resolved:
+            return "", ""
+        ip = resolved
+    return resolve_geo(ip)
+
+
+def parse_link(url: str) -> tuple[str, str, int]:
+    """Возвращает (protocol, address, port) из ссылки подписки."""
+    url = (url or "").strip()
+    if url.startswith("vmess://"):
+        try:
+            payload = url[8:]
+            payload = payload.replace("-", "+").replace("_", "/")
+            payload += "=" * (-len(payload) % 4)
+            data = json.loads(base64.b64decode(payload).decode("utf-8", errors="ignore"))
+            return "vmess", data.get("add", ""), int(data.get("port", 0) or 0)
+        except Exception:
+            return "vmess", "", 0
+    m = re.match(r"^([a-z]+)://[^@/]+@([^:]+):(\d+)", url)
+    if m:
+        return m.group(1).lower(), m.group(2), int(m.group(3))
+    return "", "", 0
 
 
 @app.before_request
@@ -731,6 +788,29 @@ def admin_dashboard():
     )
 
 
+@app.route("/admin/update/", methods=["POST"])
+@admin_required
+def admin_git_update():
+    """Выполняет git pull и возвращает вывод."""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["git", "pull"],
+            cwd=app.root_path,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        output = ((result.stdout or "") + (result.stderr or "")).strip()
+        return jsonify({
+            "ok": result.returncode == 0,
+            "returncode": result.returncode,
+            "output": output or "(нет вывода)",
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # =========================================================================
 # Admin — Users
 # =========================================================================
@@ -1102,6 +1182,78 @@ def api_announcement():
             "show_delay": msg.show_delay or 0,
         })
     return jsonify({"ok": False})
+
+
+# =========================================================================
+# Генератор конфигов: сохранение + админ-раздел
+# =========================================================================
+
+@app.route("/generator/api/save/", methods=["POST"])
+def generator_api_save():
+    """Сохраняет уникальную сгенерированную ссылку (пинг + локация)."""
+    data = request.get_json(force=True) or {}
+    url = (data.get("url") or "").strip()
+    config_json = data.get("config") or ""
+
+    if not url:
+        return jsonify({"ok": False, "error": "Пустая ссылка"}), 400
+
+    # Уникальность: дубликаты не записываем
+    if GeneratedConfig.query.filter_by(url=url).first():
+        return jsonify({"ok": True, "duplicate": True})
+
+    protocol, address, port = parse_link(url)
+    ping_ok, ping_time = ping_tcp(address, port) if address else (False, None)
+    country, city = geolocate_address(address) if address else ("", "")
+
+    rec = GeneratedConfig(
+        url=url,
+        protocol=protocol,
+        address=address,
+        port=port,
+        config_json=config_json,
+        ping_ok=ping_ok,
+        ping_time=ping_time,
+        country=country,
+        city=city,
+        checked_at=datetime.now(timezone.utc),
+    )
+    db.session.add(rec)
+    db.session.commit()
+    return jsonify({"ok": True, "duplicate": False})
+
+
+@app.route("/admin/generator/")
+@admin_required
+def admin_generator():
+    configs = GeneratedConfig.query.order_by(GeneratedConfig.created_at.desc()).all()
+    return render_template("admin/generator.html", configs=configs)
+
+
+@app.route("/admin/generator/<int:cfg_id>/recheck/", methods=["POST"])
+@admin_required
+def admin_generator_recheck(cfg_id):
+    rec = GeneratedConfig.query.get_or_404(cfg_id)
+    if rec.address:
+        ping_ok, ping_time = ping_tcp(rec.address, rec.port)
+        rec.ping_ok = ping_ok
+        rec.ping_time = ping_time
+        country, city = geolocate_address(rec.address)
+        if city:
+            rec.country = country
+            rec.city = city
+        rec.checked_at = datetime.now(timezone.utc)
+        db.session.commit()
+    return jsonify({"ok": True, "ping_ok": rec.ping_ok, "ping_time": rec.ping_time})
+
+
+@app.route("/admin/generator/<int:cfg_id>/delete/", methods=["POST"])
+@admin_required
+def admin_generator_delete(cfg_id):
+    rec = GeneratedConfig.query.get_or_404(cfg_id)
+    db.session.delete(rec)
+    db.session.commit()
+    return jsonify({"ok": True})
 
 
 # =========================================================================

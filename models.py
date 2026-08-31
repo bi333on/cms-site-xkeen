@@ -170,3 +170,28 @@ class SiteMessage(db.Model):
 
     def __repr__(self):
         return f"<SiteMessage {self.title}>"
+
+
+# =========================================================================
+# Generated configs (from generator page)
+# =========================================================================
+class GeneratedConfig(db.Model):
+    __tablename__ = "generated_configs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.Text, unique=True, nullable=False)  # ссылка подписки
+    protocol = db.Column(db.String(16), default="")
+    address = db.Column(db.String(256), default="")
+    port = db.Column(db.Integer, default=0)
+    config_json = db.Column(db.Text, default="")
+    # Результат TCP-пинга
+    ping_ok = db.Column(db.Boolean, default=False)
+    ping_time = db.Column(db.Integer, nullable=True)  # мс
+    # Локация сервера
+    country = db.Column(db.String(64), default="")
+    city = db.Column(db.String(128), default="")
+    checked_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<GeneratedConfig {self.protocol} {self.address}>"
