@@ -830,9 +830,14 @@ def admin_dashboard():
 @app.route("/admin/update/", methods=["POST"])
 @admin_required
 def admin_git_update():
-    """Выполняет git pull и возвращает вывод."""
+    """Выполняет git pull, применяет изменения БД и перезагружает приложение."""
+    import subprocess
+    import threading
+    import time
+    import signal
+    import os as _os
+
     try:
-        import subprocess
         result = subprocess.run(
             ["git", "pull"],
             cwd=app.root_path,
@@ -840,14 +845,68 @@ def admin_git_update():
             text=True,
             timeout=120,
         )
-        output = ((result.stdout or "") + (result.stderr or "")).strip()
-        return jsonify({
-            "ok": result.returncode == 0,
-            "returncode": result.returncode,
-            "output": output or "(нет вывода)",
-        })
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+    output = ((result.stdout or "") + (result.stderr or "")).strip()
+    ok = result.returncode == 0
+
+    if not ok:
+        return jsonify({
+            "ok": False,
+            "returncode": result.returncode,
+            "output": output or "(нет вывода)",
+            "message": "Ошибка git pull. Изменения не применены.",
+        })
+
+    already_up_to_date = (
+        "already up to date" in output.lower()
+        or "already up-to-date" in output.lower()
+    )
+
+    if already_up_to_date:
+        return jsonify({
+            "ok": True,
+            "returncode": result.returncode,
+            "output": output or "(нет вывода)",
+            "message": "Изменений в репозитории нет — обновление не требуется.",
+        })
+
+    message = ""
+
+    # 1) Применяем изменения на уровне БД сразу (миграции, модули, SEO-страницы)
+    try:
+        migrate_db()
+        _seed_modules()
+        _seed_editor_blocks()
+        seed_seo_pages()
+        db.session.commit()
+        message += "База данных обновлена (миграции, модули, SEO-страницы). "
+    except Exception as e:
+        db.session.rollback()
+        message += f"Обновление БД не удалось: {e}. "
+
+    # 2) Плавно перезагружаем Gunicorn (мастер перезапускает воркеры с новым кодом)
+    def _graceful_reload():
+        time.sleep(1.0)
+        try:
+            ppid = _os.getppid()
+            with open(f"/proc/{ppid}/cmdline", "rb") as f:
+                cmdline = f.read().decode(errors="ignore").replace("\x00", " ")
+            if "gunicorn" in cmdline.lower() and "master" in cmdline.lower():
+                _os.kill(ppid, signal.SIGHUP)
+        except Exception:
+            pass
+
+    threading.Thread(target=_graceful_reload, daemon=True).start()
+    message += "Перезагрузка приложения запущена — подождите пару секунд."
+
+    return jsonify({
+        "ok": ok,
+        "returncode": result.returncode,
+        "output": output or "(нет вывода)",
+        "message": message,
+    })
 
 
 # =========================================================================

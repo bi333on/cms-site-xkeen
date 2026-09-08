@@ -163,10 +163,11 @@
             fetch('/admin/update/', { method: 'POST' })
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
-                    out.textContent = d.output || d.error || 'Готово';
+                    var txt = (d.message ? d.message + '\n\n' : '') + (d.output || d.error || 'Готово');
+                    out.textContent = txt;
                     out.style.display = 'block';
                     if (d.ok) {
-                        out.style.background = 'var(--black)';
+                        out.style.background = '#0f3d1a';
                     } else {
                         out.style.background = '#3d1a1a';
                     }
