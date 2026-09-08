@@ -116,7 +116,7 @@
             {% for group in footer_nav_groups %}
             <div class="footer-col">
                 <h4>{{ group.title }}</h4>
-                {% for item in group.items %}
+                {% for item in group.links %}
                 <a href="{{ item.url }}">{{ item.label }}</a>
                 {% endfor %}
             </div>

@@ -136,7 +136,7 @@ def _get_footer_nav_groups():
     return [
         {
             "title": "Настройка",
-            "items": [
+            "links": [
                 {"label": "Пошаговая инструкция", "url": "/setup/"},
                 {"label": "Настройка Keenetic", "url": "/nastrojka-keenetic/"},
                 {"label": "Установка Xray", "url": "/ustanovka-xray-keenetic/"},
@@ -146,7 +146,7 @@ def _get_footer_nav_groups():
         },
         {
             "title": "Модели",
-            "items": [
+            "links": [
                 {"label": "Все модели", "url": "/models/"},
                 {"label": "Keenetic Hopper", "url": "/keenetic-hopper-vless/"},
                 {"label": "Keenetic Giga", "url": "/keenetic-giga-vless/"},
@@ -156,7 +156,7 @@ def _get_footer_nav_groups():
         },
         {
             "title": "Протокол и помощь",
-            "items": [
+            "links": [
                 {"label": "VLESS + Reality", "url": "/protocol/"},
                 {"label": "AmneziaWG на Keenetic", "url": "/amneziawg-keenetic/"},
                 {"label": "Частые вопросы", "url": "/faq/"},
