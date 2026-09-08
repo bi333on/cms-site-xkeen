@@ -3,6 +3,11 @@
 {% block description %}Ответы на частые вопросы по настройке VLESS + Reality на роутерах Keenetic. Решение проблем, ошибки подключения, совместимость моделей, настройка маршрутизации.{% endblock %}
 {% block keywords %}keenetic vless reality faq, вопросы keenetic vless, проблемы настройки keenetic vpn, ошибка xray keenetic, keenetic vless не работает, keenetic vless reality решение проблем{% endblock %}
 
+{% block structured_data %}
+<script type="application/ld+json">{{ breadcrumb_ld([("Главная", site_url ~ "/"), ("FAQ", site_url ~ "/faq/")]) | tojson }}</script>
+<script type="application/ld+json">{{ faq_page_ld(faq_items) | tojson }}</script>
+{% endblock %}
+
 {% block content %}
 <section class="hero hero-sm">
     <div class="container">

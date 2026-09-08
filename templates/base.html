@@ -23,6 +23,10 @@
     <meta name="twitter:title" content="{{ self.title() }}">
     <meta name="twitter:description" content="{{ self.description() }}">
     <meta name="twitter:image" content="{{ site_url }}{{ url_for('static', filename='images/og-image.png') }}">
+    <!-- Микроразметка JSON-LD: организация и сайт -->
+    <script type="application/ld+json">{{ organization_ld() | tojson }}</script>
+    <script type="application/ld+json">{{ website_ld() | tojson }}</script>
+    {% block structured_data %}{% endblock %}
     <!-- Favicon (Яндекс.Вебмастер) -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">

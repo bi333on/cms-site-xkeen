@@ -28,6 +28,8 @@ import qrcode
 from sqlalchemy import func
 
 from config import config
+import seo_ld
+import seo_pages
 from models import db, User, AdminUser, Page, CmsModule, EditorBlock, VisitStat, SiteMessage, GeneratedConfig
 from modules import module_registry, BaseModule
 
@@ -60,6 +62,15 @@ def inject_globals():
         "current_year": datetime.now(timezone.utc).year,
         "enabled_modules": _get_enabled_modules(),
         "nav_items": _get_nav_items(),
+        # JSON-LD микроразметка
+        "organization_ld": seo_ld.organization_ld,
+        "website_ld": seo_ld.website_ld,
+        "breadcrumb_ld": seo_ld.breadcrumb_ld,
+        "tech_article_ld": seo_ld.tech_article_ld,
+        "faq_page_ld": seo_ld.faq_page_ld,
+        "how_to_ld": seo_ld.how_to_ld,
+        "faq_items": seo_ld.FAQ_ITEMS,
+        "howto_steps": seo_ld.HOWTO_STEPS,
     }
 
 
@@ -128,7 +139,35 @@ def init_db():
         # Предустановленные блоки редактора
         _seed_editor_blocks()
 
+        # Целевые SEO-страницы
+        seed_seo_pages()
+
         db.session.commit()
+
+
+def seed_seo_pages():
+    """Создаёт целевые SEO-страницы (идемпотентно по slug).
+
+    Существующие страницы не перезаписываются — контент можно править
+    через админку CMS без риска быть затёртым при рестарте.
+    """
+    for data in seo_pages.SEO_PAGES:
+        if Page.query.filter_by(slug=data["slug"]).first():
+            continue
+        page = Page(
+            title=data["title"],
+            slug=data["slug"],
+            meta_description=data["meta_description"],
+            meta_keywords=data["meta_keywords"],
+            content=data["content"],
+            is_published=True,
+            access_level="public",
+            noindex=False,
+            show_in_menu=False,
+            menu_label="",
+            sort_order=100,
+        )
+        db.session.add(page)
 
 
 def _seed_modules():
@@ -1340,24 +1379,28 @@ def indexnow_key_file(key):
 @app.route("/sitemap.xml")
 def sitemap():
     static_pages = [
-        {"loc": "/", "priority": "1.0"},
-        {"loc": "/models/", "priority": "0.9"},
-        {"loc": "/protocol/", "priority": "0.9"},
-        {"loc": "/setup/", "priority": "0.8"},
-        {"loc": "/faq/", "priority": "0.7"},
-        {"loc": "/generator/", "priority": "0.8"},
+        {"loc": "/", "priority": "1.0", "lastmod": "2026-08-01"},
+        {"loc": "/models/", "priority": "0.9", "lastmod": "2026-08-01"},
+        {"loc": "/protocol/", "priority": "0.9", "lastmod": "2026-08-01"},
+        {"loc": "/setup/", "priority": "0.8", "lastmod": "2026-08-01"},
+        {"loc": "/faq/", "priority": "0.7", "lastmod": "2026-08-01"},
+        {"loc": "/generator/", "priority": "0.8", "lastmod": "2026-08-01"},
     ]
     dynamic_pages = Page.query.filter_by(is_published=True).filter(
         Page.access_level == "public", Page.noindex == False
     ).all()
     for p in dynamic_pages:
-        static_pages.append({"loc": f"/{p.slug}/", "priority": "0.6"})
+        lastmod = "2026-08-01"
+        if p.updated_at:
+            lastmod = p.updated_at.strftime("%Y-%m-%d")
+        static_pages.append({"loc": f"/{p.slug}/", "priority": "0.6", "lastmod": lastmod})
 
     sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for p in static_pages:
         sitemap_xml += "  <url>\n"
         sitemap_xml += f"    <loc>{config.SITE_URL}{p['loc']}</loc>\n"
+        sitemap_xml += f"    <lastmod>{p['lastmod']}</lastmod>\n"
         sitemap_xml += f"    <priority>{p['priority']}</priority>\n"
         sitemap_xml += "  </url>\n"
     sitemap_xml += "</urlset>"
@@ -1375,6 +1418,8 @@ def robots():
         "Disallow: /profile/\n"
         "Disallow: /logout/\n"
         "Disallow: /telegram-auth/\n"
+        "Disallow: /api/\n"
+        "Disallow: /generator/api/\n"
         "Disallow: /static/\n"
         "Disallow: /uploads/\n"
         "Allow: /static/images/favicon\n"
@@ -1507,6 +1552,7 @@ with app.app_context():
     migrate_db()
     _seed_modules()
     _seed_editor_blocks()
+    seed_seo_pages()
     db.session.commit()
     # Обнаружение и регистрация внешних модулей
     module_registry.discover_modules(app)

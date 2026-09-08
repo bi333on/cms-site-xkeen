@@ -3,6 +3,11 @@
 {% block description %}Подробное описание протокола VLESS + Reality: как работает, почему обходит DPI, сравнение с OpenVPN и WireGuard. Технические детали, преимущества, настройка на роутере Keenetic.{% endblock %}
 {% block keywords %}vless reality протокол, vless reality как работает, vless vs wireguard, vless reality обход dpi, vless reality преимущества, протокол vless reality технические детали, xray vless reality, vless xtls vision{% endblock %}
 
+{% block structured_data %}
+<script type="application/ld+json">{{ breadcrumb_ld([("Главная", site_url ~ "/"), ("VLESS + Reality", site_url ~ "/protocol/")]) | tojson }}</script>
+<script type="application/ld+json">{{ tech_article_ld("Протокол VLESS + Reality — принцип работы и преимущества", "Подробное описание протокола VLESS + Reality: как работает, почему обходит DPI, сравнение с OpenVPN и WireGuard.", site_url ~ "/protocol/") | tojson }}</script>
+{% endblock %}
+
 {% block content %}
 <section class="hero hero-sm">
     <div class="container">

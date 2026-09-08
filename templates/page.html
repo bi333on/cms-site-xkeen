@@ -3,6 +3,10 @@
 {% block description %}{{ page.meta_description or page.title }}{% endblock %}
 {% block keywords %}{{ page.meta_keywords or page.title }}{% endblock %}
 {% block head_extra %}{% if page.noindex %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
+{% block structured_data %}
+<script type="application/ld+json">{{ breadcrumb_ld([("Главная", site_url ~ "/"), (page.title, site_url ~ "/" ~ page.slug ~ "/")]) | tojson }}</script>
+<script type="application/ld+json">{{ tech_article_ld(page.title, page.meta_description or page.title, site_url ~ "/" ~ page.slug ~ "/") | tojson }}</script>
+{% endblock %}
 
 {% block content %}
 <section class="section">

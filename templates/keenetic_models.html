@@ -3,6 +3,11 @@
 {% block description %}Полный список моделей роутеров Keenetic, поддерживающих протокол VLESS + Reality в 2026 году. Таблица совместимости: Hopper, Giga, Ultra, Sprint, Titan, Peak, Skipper, Hopper DSL и другие.{% endblock %}
 {% block keywords %}keenetic модели vless reality, список keenetic vless 2026, keenetic hopper vless, keenetic giga vless, keenetic ultra vless, keenetic sprint vless, keenetic titan vless, совместимость keenetic vless reality, какие keenetic поддерживают vless, keenetic модели 2026 года{% endblock %}
 
+{% block structured_data %}
+<script type="application/ld+json">{{ breadcrumb_ld([("Главная", site_url ~ "/"), ("Модели Keenetic", site_url ~ "/models/")]) | tojson }}</script>
+<script type="application/ld+json">{{ tech_article_ld("Совместимые модели роутеров Keenetic для VLESS + Reality", "Полный список моделей Keenetic, поддерживающих VLESS + Reality в 2026 году: Hopper, Giga, Ultra, Sprint, Titan, Peak, Skipper и другие.", site_url ~ "/models/") | tojson }}</script>
+{% endblock %}
+
 {% block content %}
 <section class="hero hero-sm">
     <div class="container">

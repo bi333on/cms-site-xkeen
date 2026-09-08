@@ -3,6 +3,11 @@
 {% block description %}Пошаговая инструкция по настройке протокола VLESS + Reality на роутере Keenetic. Установка OPKG, Xray-core, создание конфигурации, настройка автозапуска. Полное руководство для всех моделей 2026 года.{% endblock %}
 {% block keywords %}настройка vless reality keenetic пошаговая инструкция, установка xray keenetic, настройка opkg keenetic, конфигурация vless reality keenetic, xray-core keenetic установка, vless reality настройка роутер, keenetic vpn пошаговая инструкция{% endblock %}
 
+{% block structured_data %}
+<script type="application/ld+json">{{ breadcrumb_ld([("Главная", site_url ~ "/"), ("Инструкция", site_url ~ "/setup/")]) | tojson }}</script>
+<script type="application/ld+json">{{ how_to_ld(howto_steps, site_url ~ "/setup/") | tojson }}</script>
+{% endblock %}
+
 {% block content %}
 <section class="hero hero-sm">
     <div class="container">
