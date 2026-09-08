@@ -30,7 +30,7 @@ from sqlalchemy import func
 from config import config
 import seo_ld
 import seo_pages
-from models import db, User, AdminUser, Page, CmsModule, EditorBlock, VisitStat, SiteMessage, GeneratedConfig
+from models import db, User, AdminUser, Page, CmsModule, EditorBlock, VisitStat, SiteMessage, GeneratedConfig, Setting
 from modules import module_registry, BaseModule
 
 # ---------------------------------------------------------------------------
@@ -116,15 +116,49 @@ def _get_nav_items():
 # URL главных пунктов, которые всегда видны в шапке (остальное — в «Ещё»)
 PRIMARY_NAV_URLS = ("/", "/models/", "/setup/", "/faq/")
 
+# Ключ настройки: сколько пунктов показывать в шапке до «Ещё»
+NAV_VISIBLE_COUNT_KEY = "nav_visible_count"
+NAV_VISIBLE_COUNT_DEFAULT = 4
+
+
+def _get_setting(key: str, default: str = "") -> str:
+    """Возвращает значение настройки из БД (или default, если её нет)."""
+    try:
+        row = Setting.query.filter_by(key=key).first()
+        return row.value if row is not None else default
+    except Exception:
+        return default
+
+
+def _set_setting(key: str, value: str) -> None:
+    """Записывает (создаёт или обновляет) настройку в БД."""
+    row = Setting.query.filter_by(key=key).first()
+    if row is None:
+        db.session.add(Setting(key=key, value=value))
+    else:
+        row.value = value
+
+
+def _get_nav_visible_count() -> int:
+    """Сколько пунктов верхнего меню показывать до выпадающего «Ещё»."""
+    try:
+        return max(1, int(_get_setting(NAV_VISIBLE_COUNT_KEY, str(NAV_VISIBLE_COUNT_DEFAULT))))
+    except (TypeError, ValueError):
+        return NAV_VISIBLE_COUNT_DEFAULT
+
 
 def _get_primary_nav_items():
-    """Главные пункты шапки (видимая часть верхнего меню)."""
-    return [i for i in _get_nav_items() if i.get("url") in PRIMARY_NAV_URLS]
+    """Главные пункты шапки: первые N из навигации (по настройке)."""
+    items = _get_nav_items()
+    count = _get_nav_visible_count()
+    return items[:count]
 
 
 def _get_more_nav_items():
     """Пункты выпадающего меню «Ещё» (всё, что не вошло в основную навигацию)."""
-    return [i for i in _get_nav_items() if i.get("url") not in PRIMARY_NAV_URLS]
+    items = _get_nav_items()
+    count = _get_nav_visible_count()
+    return items[count:]
 
 
 def _get_footer_nav_groups():
@@ -870,6 +904,9 @@ def admin_dashboard():
     admin_user = AdminUser.query.filter_by(username=admin_username).first()
     totp_enabled = admin_user.totp_enabled if admin_user else False
 
+    nav_visible_count = _get_nav_visible_count()
+    nav_total_count = len(_get_nav_items())
+
     return render_template(
         "admin/dashboard.html",
         total=total,
@@ -879,7 +916,25 @@ def admin_dashboard():
         modules_count=modules_count,
         visits_count=visits_count,
         totp_enabled=totp_enabled,
+        nav_visible_count=nav_visible_count,
+        nav_total_count=nav_total_count,
     )
+
+
+@app.route("/admin/settings/nav/", methods=["POST"])
+@admin_required
+def admin_save_nav_setting():
+    """Сохраняет количество видимых пунктов верхнего меню."""
+    data = request.get_json(force=True) or {}
+    raw = data.get("nav_visible_count", None)
+    try:
+        count = max(1, min(50, int(raw)))
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "Введите целое число"}), 400
+
+    _set_setting(NAV_VISIBLE_COUNT_KEY, str(count))
+    db.session.commit()
+    return jsonify({"ok": True, "nav_visible_count": count})
 
 
 @app.route("/admin/update/", methods=["POST"])

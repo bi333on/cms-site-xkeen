@@ -138,6 +138,20 @@
                     <button class="btn btn-orange btn-sm" id="gitUpdateBtn">🔄 Обновить</button>
                     <pre id="gitUpdateOutput" style="display:none;margin-top:1rem;padding:0.75rem 1rem;background:var(--black);color:#E5E7EB;border-radius:8px;font-size:0.8rem;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;"></pre>
                 </div>
+
+                <div class="admin-card">
+                    <h3>🧭 Верхнее меню</h3>
+                    <p style="color:var(--gray-600);margin-bottom:1rem;">
+                        Сколько пунктов показывать в шапке до выпадающего меню «Ещё».
+                        Всего пунктов в навигации: <strong>{{ nav_total_count }}</strong>.
+                    </p>
+                    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                        <input type="number" id="navVisibleInput" value="{{ nav_visible_count }}" min="1" max="50"
+                               style="width:90px;padding:0.5rem 0.75rem;border:1px solid var(--gray-300);border-radius:8px;font-size:1rem;">
+                        <button class="btn btn-orange btn-sm" id="saveNavBtn">💾 Сохранить</button>
+                        <span id="navSaveStatus" style="font-size:0.85rem;color:var(--gray-500);"></span>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -180,6 +194,47 @@
                     out.style.background = '#3d1a1a';
                     btn.textContent = '🔄 Обновить';
                     btn.disabled = false;
+                });
+        });
+
+        document.getElementById('saveNavBtn').addEventListener('click', function() {
+            var input = document.getElementById('navVisibleInput');
+            var status = document.getElementById('navSaveStatus');
+            var value = parseInt(input.value, 10);
+
+            if (isNaN(value) || value < 1 || value > 50) {
+                status.textContent = 'Введите число от 1 до 50';
+                status.style.color = '#C62828';
+                return;
+            }
+
+            var btn = this;
+            btn.disabled = true;
+            btn.textContent = '⏳ Сохранение...';
+            status.textContent = '';
+
+            fetch('/admin/settings/nav/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({nav_visible_count: value})
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.ok) {
+                        status.textContent = '✅ Сохранено: ' + d.nav_visible_count + ' пункт(ов) в шапке';
+                        status.style.color = '#2E7D32';
+                    } else {
+                        status.textContent = '❌ ' + (d.error || 'Ошибка');
+                        status.style.color = '#C62828';
+                    }
+                    btn.disabled = false;
+                    btn.textContent = '💾 Сохранить';
+                })
+                .catch(function(e) {
+                    status.textContent = 'Ошибка соединения: ' + e.message;
+                    status.style.color = '#C62828';
+                    btn.disabled = false;
+                    btn.textContent = '💾 Сохранить';
                 });
         });
     </script>
