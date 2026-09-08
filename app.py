@@ -62,6 +62,9 @@ def inject_globals():
         "current_year": datetime.now(timezone.utc).year,
         "enabled_modules": _get_enabled_modules(),
         "nav_items": _get_nav_items(),
+        "primary_nav_items": _get_primary_nav_items(),
+        "more_nav_items": _get_more_nav_items(),
+        "footer_nav_groups": _get_footer_nav_groups(),
         # JSON-LD микроразметка
         "organization_ld": seo_ld.organization_ld,
         "website_ld": seo_ld.website_ld,
@@ -108,6 +111,58 @@ def _get_nav_items():
     except Exception:
         pass
     return items
+
+
+# URL главных пунктов, которые всегда видны в шапке (остальное — в «Ещё»)
+PRIMARY_NAV_URLS = ("/", "/models/", "/setup/", "/faq/")
+
+
+def _get_primary_nav_items():
+    """Главные пункты шапки (видимая часть верхнего меню)."""
+    return [i for i in _get_nav_items() if i.get("url") in PRIMARY_NAV_URLS]
+
+
+def _get_more_nav_items():
+    """Пункты выпадающего меню «Ещё» (всё, что не вошло в основную навигацию)."""
+    return [i for i in _get_nav_items() if i.get("url") not in PRIMARY_NAV_URLS]
+
+
+def _get_footer_nav_groups():
+    """Карта сайта для подвала, сгруппированная по темам.
+
+    В отличие от верхнего меню, здесь перечислены и целевые SEO-страницы,
+    чтобы они были доступны для внутренней перелинковки и индексации.
+    """
+    return [
+        {
+            "title": "Настройка",
+            "items": [
+                {"label": "Пошаговая инструкция", "url": "/setup/"},
+                {"label": "Настройка Keenetic", "url": "/nastrojka-keenetic/"},
+                {"label": "Установка Xray", "url": "/ustanovka-xray-keenetic/"},
+                {"label": "Настройка OPKG", "url": "/nastrojka-opkg-keenetic/"},
+                {"label": "Генератор конфига", "url": "/generator/"},
+            ],
+        },
+        {
+            "title": "Модели",
+            "items": [
+                {"label": "Все модели", "url": "/models/"},
+                {"label": "Keenetic Hopper", "url": "/keenetic-hopper-vless/"},
+                {"label": "Keenetic Giga", "url": "/keenetic-giga-vless/"},
+                {"label": "Keenetic Ultra", "url": "/keenetic-ultra-vless/"},
+                {"label": "Keenetic Sprint", "url": "/keenetic-sprint-vless/"},
+            ],
+        },
+        {
+            "title": "Протокол и помощь",
+            "items": [
+                {"label": "VLESS + Reality", "url": "/protocol/"},
+                {"label": "AmneziaWG на Keenetic", "url": "/amneziawg-keenetic/"},
+                {"label": "Частые вопросы", "url": "/faq/"},
+            ],
+        },
+    ]
 
 
 # ---------------------------------------------------------------------------

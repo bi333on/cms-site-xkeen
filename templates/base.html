@@ -68,10 +68,23 @@
                 <span class="logo-text">VLESS-<span class="logo-dot">Keenetic</span></span>
             </a>
             <nav class="main-nav" id="mainNav">
-                {% for item in nav_items %}
+                {% for item in primary_nav_items %}
                     {% set is_active = (request.path == item.url) or (item.url != '/' and request.path.startswith(item.url)) %}
                     <a href="{{ item.url }}" class="nav-link {% if is_active %}active{% endif %}">{{ item.label }}</a>
                 {% endfor %}
+
+                {% if more_nav_items %}
+                <div class="nav-dropdown">
+                    <button class="nav-link nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+                        Ещё ▾
+                    </button>
+                    <div class="nav-dropdown-menu">
+                        {% for item in more_nav_items %}
+                            <a href="{{ item.url }}" class="nav-dropdown-link">{{ item.label }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </nav>
             <div class="header-actions">
                 {% if current_user.is_authenticated %}
@@ -95,16 +108,20 @@
     <!-- Подвал -->
     <footer class="site-footer">
         <div class="container footer-inner">
-            <div class="footer-col">
+            <div class="footer-col footer-brand">
                 <h4>VLESS-Keenetic</h4>
                 <p>Пошаговые инструкции по настройке роутеров Keenetic с протоколом VLESS + Reality. Высокая скорость, стабильное соединение. Все актуальные модели 2026 года.</p>
             </div>
+
+            {% for group in footer_nav_groups %}
             <div class="footer-col">
-                <h4>Разделы</h4>
-                {% for item in nav_items %}
+                <h4>{{ group.title }}</h4>
+                {% for item in group.items %}
                 <a href="{{ item.url }}">{{ item.label }}</a>
                 {% endfor %}
             </div>
+            {% endfor %}
+
             <div class="footer-col">
                 <h4>Контакты</h4>
                 <p>Поддержка через Telegram-бота</p>
