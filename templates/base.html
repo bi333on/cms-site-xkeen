@@ -74,13 +74,20 @@
                 {% endfor %}
 
                 {% if more_nav_items %}
-                <div class="nav-dropdown">
-                    <button class="nav-link nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+                {% set more_has_active = namespace(found=false) %}
+                {% for item in more_nav_items %}
+                    {% if (request.path == item.url) or (item.url != '/' and request.path.startswith(item.url)) %}
+                        {% set more_has_active.found = true %}
+                    {% endif %}
+                {% endfor %}
+                <div class="nav-dropdown {% if more_has_active.found %}open{% endif %}">
+                    <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">
                         Ещё ▾
                     </button>
                     <div class="nav-dropdown-menu">
                         {% for item in more_nav_items %}
-                            <a href="{{ item.url }}" class="nav-dropdown-link">{{ item.label }}</a>
+                            {% set is_active = (request.path == item.url) or (item.url != '/' and request.path.startswith(item.url)) %}
+                            <a href="{{ item.url }}" class="nav-dropdown-link {% if is_active %}active{% endif %}">{{ item.label }}</a>
                         {% endfor %}
                     </div>
                 </div>
