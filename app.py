@@ -8,7 +8,7 @@ import base64
 import socket
 import time
 import ipaddress
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from functools import wraps
 from urllib.parse import unquote
 
@@ -425,6 +425,32 @@ def _seed_editor_blocks():
 # ---------------------------------------------------------------------------
 # Статистика посещений
 # ---------------------------------------------------------------------------
+# Время последней очистки старых визитов (для защиты от частого запуска)
+_LAST_VISIT_PURGE = 0.0
+VISIT_RETENTION_DAYS = 30
+VISIT_PURGE_INTERVAL = 3600  # секунды (очистка не чаще раза в час)
+
+
+def purge_old_visits(retention_days: int = VISIT_RETENTION_DAYS) -> int:
+    """Удаляет визиты старше retention_days. Возвращает количество удалённых."""
+    global _LAST_VISIT_PURGE
+    now = time.time()
+    if now - _LAST_VISIT_PURGE < VISIT_PURGE_INTERVAL:
+        return 0
+
+    _LAST_VISIT_PURGE = now
+    cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+    try:
+        deleted = VisitStat.query.filter(
+            VisitStat.created_at < cutoff
+        ).delete(synchronize_session=False)
+        db.session.commit()
+        return deleted
+    except Exception:
+        db.session.rollback()
+        return 0
+
+
 def get_client_ip() -> str:
     """Определяет IP посетителя (за Caddy reverse proxy)."""
     forwarded = request.headers.get("X-Forwarded-For", "")
@@ -567,6 +593,9 @@ def log_visit():
         db.session.commit()
     except Exception:
         db.session.rollback()
+
+    # Периодическая очистка визитов старше 30 дней (не чаще раза в час)
+    purge_old_visits()
 
 
 # ---------------------------------------------------------------------------
@@ -1270,15 +1299,35 @@ def admin_stats():
         func.count(VisitStat.id).desc()
     ).limit(10).all()
 
-    # Объединённые визиты: группировка по IP + странице с количеством
-    grouped_visits = db.session.query(
+    # Объединённые визиты: группировка по IP + странице с количеством.
+    # Пагинация: 50 записей на страницу.
+    page = request.args.get("page", 1, type=int)
+    per_page = 50
+    if page < 1:
+        page = 1
+
+    grouped_query = db.session.query(
         VisitStat.ip,
         VisitStat.path,
         func.count(VisitStat.id).label("cnt"),
         func.max(VisitStat.created_at).label("last_seen"),
     ).group_by(VisitStat.ip, VisitStat.path).order_by(
         func.max(VisitStat.created_at).desc()
-    ).limit(200).all()
+    )
+
+    total_groups = db.session.query(
+        func.count()
+    ).select_from(
+        db.session.query(
+            VisitStat.ip, VisitStat.path
+        ).group_by(VisitStat.ip, VisitStat.path).subquery()
+    ).scalar() or 0
+
+    total_pages = max(1, -(-total_groups // per_page))
+    if page > total_pages:
+        page = total_pages
+
+    grouped_visits = grouped_query.offset((page - 1) * per_page).limit(per_page).all()
 
     # Разрешаем гео для уникальных IP из сгруппированного списка
     geo_cache: dict[str, tuple[str, str]] = {}
@@ -1312,6 +1361,10 @@ def admin_stats():
         geo_cache=geo_cache,
         top_pages=top_pages,
         top_cities=top_cities,
+        page=page,
+        total_pages=total_pages,
+        total_groups=total_groups,
+        per_page=per_page,
     )
 
 

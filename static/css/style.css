@@ -521,3 +521,11 @@ ul,ol{padding-left:1.5rem}
 .generator-card input[type="text"]{width:100%;padding:0.75rem 1rem;border:1px solid var(--gray-300);border-radius:8px;font-size:0.95rem;outline:none;font-family:var(--mono)}
 .generator-card input[type="text"]:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,107,0,0.1)}
 @media(max-width:768px){.generator-card{padding:1.25rem}.generator-actions .btn{width:100%}}
+
+/* --- Пагинация (статистика, списки) --- */
+.pagination{display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;margin-top:1.25rem;justify-content:center}
+.page-link{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 0.6rem;border-radius:8px;border:1px solid var(--gray-200);background:var(--white);color:var(--gray-700);font-size:0.85rem;font-weight:500;transition:all var(--transition)}
+.page-link:hover{background:var(--orange-light);border-color:var(--orange);color:var(--orange)}
+.page-link.active{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:600;cursor:default}
+.page-link.disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}
+.page-ellipsis{color:var(--gray-400);padding:0 0.25rem;font-size:0.85rem}
