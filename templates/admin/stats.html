@@ -39,18 +39,49 @@
                         </div>
                     </div>
                     <div class="stat-card stat-green">
+                        <div class="stat-icon">👤</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ human_visits }}</span>
+                            <span class="stat-label">Реальные пользователи</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-orange">
+                        <div class="stat-icon">🤖</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ bot_visits }}</span>
+                            <span class="stat-label">Боты</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
                         <div class="stat-icon">🌐</div>
                         <div class="stat-info">
                             <span class="stat-value">{{ unique_ips }}</span>
                             <span class="stat-label">Уникальных IP</span>
                         </div>
                     </div>
-                    <div class="stat-card stat-orange">
+                    <div class="stat-card">
                         <div class="stat-icon">📅</div>
                         <div class="stat-info">
                             <span class="stat-value">{{ today_visits }}</span>
                             <span class="stat-label">За сегодня</span>
                         </div>
+                    </div>
+                    <div class="stat-card stat-green">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ today_human }}</span>
+                            <span class="stat-label">Сегодня (люди)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Фильтр по типу трафика -->
+                <div class="admin-card" style="padding:0.75rem 1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                        <span style="font-weight:600;color:var(--gray-700);font-size:0.9rem;">Фильтр:</span>
+                        <a href="{{ url_for('admin_stats', page=1, traffic='all') }}" class="btn btn-sm {{ 'btn-orange' if traffic == 'all' else 'btn-black' }}">Все</a>
+                        <a href="{{ url_for('admin_stats', page=1, traffic='human') }}" class="btn btn-sm {{ 'btn-orange' if traffic == 'human' else 'btn-black' }}">👤 Люди</a>
+                        <a href="{{ url_for('admin_stats', page=1, traffic='bot') }}" class="btn btn-sm {{ 'btn-orange' if traffic == 'bot' else 'btn-black' }}">🤖 Боты</a>
                     </div>
                 </div>
 
@@ -106,6 +137,7 @@
                             <thead>
                                 <tr>
                                     <th>IP</th>
+                                    <th>Тип</th>
                                     <th>Город / Страна</th>
                                     <th>Страница</th>
                                     <th>Кол-во визитов</th>
@@ -114,12 +146,19 @@
                             </thead>
                             <tbody>
                                 {% if grouped_visits %}
-                                    {% for ip, path, cnt, last_seen in grouped_visits %}
+                                    {% for ip, path, is_bot, cnt, last_seen in grouped_visits %}
                                     <tr>
                                         <td><code>{{ ip }}</code></td>
                                         <td>
+                                            {% if is_bot %}
+                                                <span class="status-badge status-warning">🤖 Бот</span>
+                                            {% else %}
+                                                <span class="status-badge status-active">👤 Человек</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
                                             {% set geo = geo_cache.get(ip, ('', '')) %}
-                                            {% if geo[0] %}{{ geo[0] }}{% if geo[1] %}, {{ geo[1] }}{% endif %}{% else %}—{% endif %}
+                                            {% if is_bot %}—{% elif geo[0] %}{{ geo[0] }}{% if geo[1] %}, {{ geo[1] }}{% endif %}{% else %}—{% endif %}
                                         </td>
                                         <td><code>{{ path }}</code></td>
                                         <td><strong>{{ cnt }}</strong></td>
@@ -127,7 +166,7 @@
                                     </tr>
                                     {% endfor %}
                                 {% else %}
-                                    <tr><td colspan="5" class="loading-cell">Пока нет визитов</td></tr>
+                                    <tr><td colspan="6" class="loading-cell">Пока нет визитов</td></tr>
                                 {% endif %}
                             </tbody>
                         </table>
@@ -136,7 +175,7 @@
                     {% if total_pages > 1 %}
                     <div class="pagination">
                         {% if page > 1 %}
-                            <a href="{{ url_for('admin_stats', page=page-1) }}" class="page-link">← Назад</a>
+                            <a href="{{ url_for('admin_stats', page=page-1, traffic=traffic) }}" class="page-link">← Назад</a>
                         {% else %}
                             <span class="page-link disabled">← Назад</span>
                         {% endif %}
@@ -148,13 +187,13 @@
                             {% if p == page %}
                                 <span class="page-link active">{{ p }}</span>
                             {% else %}
-                                <a href="{{ url_for('admin_stats', page=p) }}" class="page-link">{{ p }}</a>
+                                <a href="{{ url_for('admin_stats', page=p, traffic=traffic) }}" class="page-link">{{ p }}</a>
                             {% endif %}
                         {% endfor %}
                         {% if end_p < total_pages %}<span class="page-ellipsis">…</span>{% endif %}
 
                         {% if page < total_pages %}
-                            <a href="{{ url_for('admin_stats', page=page+1) }}" class="page-link">Вперёд →</a>
+                            <a href="{{ url_for('admin_stats', page=page+1, traffic=traffic) }}" class="page-link">Вперёд →</a>
                         {% else %}
                             <span class="page-link disabled">Вперёд →</span>
                         {% endif %}

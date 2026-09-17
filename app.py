@@ -463,12 +463,17 @@ def get_client_ip() -> str:
 
 
 def is_bot(user_agent: str) -> bool:
-    """Грубая проверка на поисковых ботов и краулеров."""
+    """Проверка на поисковых ботов, краулеров и прочих программных клиентов."""
     ua = (user_agent or "").lower()
     bot_keywords = [
         "bot", "crawler", "spider", "yandex", "googlebot", "bingbot",
         "slurp", "duckduckbot", "facebookexternalhit", "whatsapp",
         "telegrambot", "python-requests", "curl", "wget", "httpclient",
+        "baiduspider", "yandeximages", "yandexdirect", "mail.ru_bot",
+        "semrushbot", "ahrefsbot", "mj12bot", "dotbot", "pinterestbot",
+        "applebot", "petalbot", "headlesschrome", "phantomjs",
+        "apache-httpclient", "okhttp", "axios", "node-fetch", "go-http-client",
+        "lighthouse", "pagespeed", "uptimerobot", "monitoring",
     ]
     return any(k in ua for k in bot_keywords)
 
@@ -571,8 +576,10 @@ def log_visit():
         return
 
     ua = request.headers.get("User-Agent", "")
-    if not ua or is_bot(ua):
+    if not ua:
         return
+
+    is_bot_visit = is_bot(ua)
 
     ip = get_client_ip()
     try:
@@ -587,6 +594,7 @@ def log_visit():
             user_agent=ua[:500],
             referrer=(request.headers.get("Referer") or "")[:500],
             is_authenticated=user_id is not None,
+            is_bot=is_bot_visit,
             user_id=user_id,
         )
         db.session.add(visit)
@@ -1278,28 +1286,46 @@ def admin_toggle_module(module_id):
 @admin_required
 def admin_stats():
     total = VisitStat.query.count()
+    bot_visits = VisitStat.query.filter_by(is_bot=True).count()
+    human_visits = total - bot_visits
     unique_ips = db.session.query(
         func.count(func.distinct(VisitStat.ip))
     ).scalar() or 0
 
     today = datetime.now(timezone.utc).date()
+    today_start = datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
     today_visits = VisitStat.query.filter(
-        VisitStat.created_at >= datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
+        VisitStat.created_at >= today_start
+    ).count()
+    today_human = VisitStat.query.filter(
+        VisitStat.created_at >= today_start, VisitStat.is_bot == False
     ).count()
 
-    # Топ страниц
-    top_pages = db.session.query(
-        VisitStat.path, func.count(VisitStat.id).label("cnt")
-    ).group_by(VisitStat.path).order_by(func.count(VisitStat.id).desc()).limit(10).all()
+    # Фильтр по типу трафика: all / human / bot
+    traffic = request.args.get("traffic", "all", type=str)
+    if traffic not in ("all", "human", "bot"):
+        traffic = "all"
 
-    # Топ городов
-    top_cities = db.session.query(
-        VisitStat.city, func.count(VisitStat.id).label("cnt")
-    ).filter(VisitStat.city != "").group_by(VisitStat.city).order_by(
+    # Топ страниц (с учётом фильтра)
+    top_pages_query = db.session.query(
+        VisitStat.path, func.count(VisitStat.id).label("cnt")
+    )
+    if traffic == "human":
+        top_pages_query = top_pages_query.filter(VisitStat.is_bot == False)
+    elif traffic == "bot":
+        top_pages_query = top_pages_query.filter(VisitStat.is_bot == True)
+    top_pages = top_pages_query.group_by(VisitStat.path).order_by(
         func.count(VisitStat.id).desc()
     ).limit(10).all()
 
-    # Объединённые визиты: группировка по IP + странице с количеством.
+    # Топ городов (только по реальным пользователям — боты гео не нужны)
+    top_cities = db.session.query(
+        VisitStat.city, func.count(VisitStat.id).label("cnt")
+    ).filter(VisitStat.city != "", VisitStat.is_bot == False).group_by(
+        VisitStat.city
+    ).order_by(func.count(VisitStat.id).desc()).limit(10).all()
+
+    # Объединённые визиты: группировка по IP + странице + признаку бота.
     # Пагинация: 50 записей на страницу.
     page = request.args.get("page", 1, type=int)
     per_page = 50
@@ -1309,18 +1335,28 @@ def admin_stats():
     grouped_query = db.session.query(
         VisitStat.ip,
         VisitStat.path,
+        VisitStat.is_bot,
         func.count(VisitStat.id).label("cnt"),
         func.max(VisitStat.created_at).label("last_seen"),
-    ).group_by(VisitStat.ip, VisitStat.path).order_by(
+    ).group_by(VisitStat.ip, VisitStat.path, VisitStat.is_bot).order_by(
         func.max(VisitStat.created_at).desc()
     )
 
-    total_groups = db.session.query(
-        func.count()
-    ).select_from(
-        db.session.query(
-            VisitStat.ip, VisitStat.path
-        ).group_by(VisitStat.ip, VisitStat.path).subquery()
+    if traffic == "human":
+        grouped_query = grouped_query.filter(VisitStat.is_bot == False)
+    elif traffic == "bot":
+        grouped_query = grouped_query.filter(VisitStat.is_bot == True)
+
+    grouped_subquery = db.session.query(
+        VisitStat.ip, VisitStat.path, VisitStat.is_bot
+    ).group_by(VisitStat.ip, VisitStat.path, VisitStat.is_bot)
+    if traffic == "human":
+        grouped_subquery = grouped_subquery.filter(VisitStat.is_bot == False)
+    elif traffic == "bot":
+        grouped_subquery = grouped_subquery.filter(VisitStat.is_bot == True)
+
+    total_groups = db.session.query(func.count()).select_from(
+        grouped_subquery.subquery()
     ).scalar() or 0
 
     total_pages = max(1, -(-total_groups // per_page))
@@ -1357,6 +1393,9 @@ def admin_stats():
         total=total,
         unique_ips=unique_ips,
         today_visits=today_visits,
+        bot_visits=bot_visits,
+        human_visits=human_visits,
+        today_human=today_human,
         grouped_visits=grouped_visits,
         geo_cache=geo_cache,
         top_pages=top_pages,
@@ -1365,6 +1404,7 @@ def admin_stats():
         total_pages=total_pages,
         total_groups=total_groups,
         per_page=per_page,
+        traffic=traffic,
     )
 
 
@@ -1768,6 +1808,12 @@ def migrate_db():
                     conn.execute(text("ALTER TABLE site_messages ADD COLUMN repeat_hours INTEGER DEFAULT 3"))
                 if "show_delay" not in cols:
                     conn.execute(text("ALTER TABLE site_messages ADD COLUMN show_delay INTEGER DEFAULT 0"))
+
+        if "visit_stats" in existing_tables:
+            cols = {c["name"] for c in inspector.get_columns("visit_stats")}
+            with db.engine.begin() as conn:
+                if "is_bot" not in cols:
+                    conn.execute(text("ALTER TABLE visit_stats ADD COLUMN is_bot BOOLEAN DEFAULT 0"))
     except Exception as e:
         app.logger.warning(f"Миграция БД пропущена: {e}")
 

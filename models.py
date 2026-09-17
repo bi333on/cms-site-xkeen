@@ -136,6 +136,7 @@ class VisitStat(db.Model):
     user_agent = db.Column(db.String(512), default="")
     referrer = db.Column(db.String(512), default="")
     is_authenticated = db.Column(db.Boolean, default=False)
+    is_bot = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, nullable=True)
     created_at = db.Column(
         db.DateTime,
