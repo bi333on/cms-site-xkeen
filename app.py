@@ -186,6 +186,11 @@ def _get_footer_nav_groups():
                 {"label": "Keenetic Giga", "url": "/keenetic-giga-vless/"},
                 {"label": "Keenetic Ultra", "url": "/keenetic-ultra-vless/"},
                 {"label": "Keenetic Sprint", "url": "/keenetic-sprint-vless/"},
+                {"label": "Keenetic Titan", "url": "/keenetic-titan-vless/"},
+                {"label": "Keenetic Peak", "url": "/keenetic-peak-vless/"},
+                {"label": "Keenetic Skipper", "url": "/keenetic-skipper-vless/"},
+                {"label": "Keenetic Giant", "url": "/keenetic-giant-vless/"},
+                {"label": "Keenetic Hero", "url": "/keenetic-hero-vless/"},
             ],
         },
         {
@@ -193,6 +198,9 @@ def _get_footer_nav_groups():
             "links": [
                 {"label": "VLESS + Reality", "url": "/protocol/"},
                 {"label": "AmneziaWG на Keenetic", "url": "/amneziawg-keenetic/"},
+                {"label": "VLESS не работает", "url": "/keenetic-vless-ne-rabotaet/"},
+                {"label": "Обновление Xray", "url": "/obnovit-xray-keenetic/"},
+                {"label": "Маршрутизация VLESS", "url": "/keenetic-marshrutizaciya-vless/"},
                 {"label": "Частые вопросы", "url": "/faq/"},
             ],
         },

@@ -305,6 +305,285 @@ Keenetic Sprint (KN-3312) — компактная модель с поддер�
 
 На Sprint важно использовать флешку для Entware, чтобы не занимать внутреннюю память роутера. При ошибках — раздел [частых вопросов](/faq/). Полный список моделей — на странице [«Модели Keenetic»](/models/).""",
     },
+    {
+        "slug": "keenetic-titan-vless",
+        "title": "Keenetic Titan и VLESS + Reality — настройка 2026",
+        "meta_description": "Настройка VLESS + Reality на роутере Keenetic Titan (KN-3610): установка OPKG и Xray-core, конфигурация, автозапуск. Пошаговая инструкция для мощной модели с Wi-Fi 6E.",
+        "meta_keywords": "keenetic titan vless, keenetic titan vless reality, titan kn-3610 vless, настройка vless keenetic titan, keenetic titan vpn, keenetic titan xray",
+        "content": """# Keenetic Titan и VLESS + Reality
+
+Keenetic Titan (KN-3610) — производительная модель с поддержкой Wi-Fi 6E и трёх диапазонов. Titan отлично подходит для настройки VLESS + Reality в домах и офисах с высокой нагрузкой на сеть.
+
+## Характеристики Titan
+
+- Wi-Fi 6E (AXE7800), три диапазона;
+- поддержка OPKG/Entware;
+- USB 3.0 и мощный процессор.
+
+## Настройка на Keenetic Titan
+
+1. В веб-интерфейсе установите компоненты **OPKG**, **Файловая система Ext** и **Пакет расширения Xtables-addons для Netfilter**.
+2. Подготовьте флешку с Entware — при высоких нагрузках внешний накопитель предпочтительнее встроенной памяти.
+3. По SSH установите Xray-core.
+4. Сгенерируйте конфигурацию в [Генераторе](/generator/) и замените файл `04_outbounds.json` в `/etc/xray/configs/`.
+5. Создайте политику XKeen и запустите соединение командой `xkeen -start`.
+
+Детальный алгоритм — в [пошаговой инструкции](/setup/). Установка ядра — в разделе [«Установка Xray на Keenetic»](/ustanovka-xray-keenetic/).
+
+## Особенности модели
+
+Titan поддерживает аппаратное ускорение, что позволяет достигать высокой скорости через VLESS. Рекомендуется включить автообновление ядра и настроить отдельную Wi-Fi сеть под политику XKeen. При проблемах — [частые вопросы](/faq/) и [сравнение моделей](/models/).""",
+    },
+    {
+        "slug": "keenetic-peak-vless",
+        "title": "Keenetic Peak и VLESS + Reality — настройка 2026",
+        "meta_description": "Настройка VLESS + Reality на роутере Keenetic Peak (KN-2710): установка OPKG, Xray-core, конфигурация и проверка. Инструкция для бюджетной модели.",
+        "meta_keywords": "keenetic peak vless, keenetic peak vless reality, peak kn-2710 vless, настройка vless keenetic peak, keenetic peak vpn, keenetic peak xray",
+        "content": """# Keenetic Peak и VLESS + Reality
+
+Keenetic Peak (KN-2710) — бюджетная модель с поддержкой Wi-Fi 6, подходящая для небольших квартир. Несмотря на доступную цену, Peak поддерживает OPKG и позволяет настроить VLESS + Reality.
+
+## Характеристики Peak
+
+- Wi-Fi 6 (AX1800);
+- поддержка OPKG/Entware;
+- компактный корпус, нет USB-порта.
+
+## Настройка на Keenetic Peak
+
+Поскольку у Peak нет USB-порта, Entware и Xray-core устанавливаются во внутреннюю память роутера:
+
+1. Установите компоненты **OPKG** и **Файловая система Ext**.
+2. Убедитесь, что во встроенном хранилище достаточно свободного места.
+3. По SSH установите Xray-core.
+4. Сгенерируйте конфигурацию в [Генераторе](/generator/) и замените `04_outbounds.json`.
+5. Создайте политику XKeen и запустите соединение.
+
+Подробности — в [пошаговой инструкции](/setup/) и разделе [«Установка Xray на Keenetic»](/ustanovka-xray-keenetic/).
+
+## Советы для бюджетной модели
+
+На Peak следите за свободным местом во встроенной памяти: при нехватке удаляйте неиспользуемые пакеты. При ошибках — раздел [частых вопросов](/faq/). Список всех совместимых моделей — на странице [«Модели Keenetic»](/models/).""",
+    },
+    {
+        "slug": "keenetic-skipper-vless",
+        "title": "Keenetic Skipper и VLESS + Reality — настройка 2026",
+        "meta_description": "Настройка VLESS + Reality на роутере Keenetic Skipper (KN-2910): установка OPKG, Xray-core, конфигурация и проверка. Пошаговая инструкция.",
+        "meta_keywords": "keenetic skipper vless, keenetic skipper vless reality, skipper kn-2910 vless, настройка vless keenetic skipper, keenetic skipper vpn, keenetic skipper xray",
+        "content": """# Keenetic Skipper и VLESS + Reality
+
+Keenetic Skipper (KN-2910) — модель среднего сегмента с поддержкой Wi-Fi 6. Skipper поддерживает OPKG и позволяет настроить VLESS + Reality для всех устройств в сети.
+
+## Характеристики Skipper
+
+- Wi-Fi 6 (AX5400);
+- поддержка OPKG/Entware;
+- USB 2.0 для внешнего накопителя.
+
+## Настройка на Keenetic Skipper
+
+1. В веб-интерфейсе установите компоненты **OPKG** и **Файловая система Ext**.
+2. Подключите флешку и установите Entware (рекомендуется, чтобы не занимать внутреннюю память).
+3. По SSH установите Xray-core.
+4. Сгенерируйте конфигурацию в [Генераторе](/generator/) и замените `04_outbounds.json`.
+5. Создайте политику XKeen и запустите соединение.
+
+Детальный алгоритм — в [пошаговой инструкции](/setup/). Установка ядра — в разделе [«Установка Xray на Keenetic»](/ustanovka-xray-keenetic/).
+
+## Рекомендации
+
+Для Skipper рекомендуем использовать флешку для Entware и настроить выборочную маршрутизацию. При проблемах — раздел [частых вопросов](/faq/). Сравнение моделей — на странице [«Модели Keenetic»](/models/).""",
+    },
+    {
+        "slug": "keenetic-giant-vless",
+        "title": "Keenetic Giant и VLESS + Reality — настройка 2026",
+        "meta_description": "Настройка VLESS + Reality на роутере Keenetic Giant (KN-4010): установка OPKG, Xray-core, конфигурация и проверка. Инструкция для бюджетной модели.",
+        "meta_keywords": "keenetic giant vless, keenetic giant vless reality, giant kn-4010 vless, настройка vless keenetic giant, keenetic giant vpn, keenetic giant xray",
+        "content": """# Keenetic Giant и VLESS + Reality
+
+Keenetic Giant (KN-4010) — доступная модель с поддержкой Wi-Fi 6. Giant поддерживает OPKG, поэтому на нём можно настроить VLESS + Reality даже при ограниченном бюджете.
+
+## Характеристики Giant
+
+- Wi-Fi 6 (AX1500);
+- поддержка OPKG/Entware;
+- USB 2.0.
+
+## Настройка на Keenetic Giant
+
+1. Установите компоненты **OPKG** и **Файловая система Ext** в веб-интерфейсе.
+2. Подключите флешку с Entware.
+3. По SSH установите Xray-core.
+4. Сгенерируйте конфигурацию в [Генераторе](/generator/) и замените `04_outbounds.json`.
+5. Создайте политику XKeen и запустите соединение.
+
+Подробности — в [пошаговой инструкции](/setup/) и разделе [«Установка Xray на Keenetic»](/ustanovka-xray-keenetic/).
+
+## Советы
+
+На Giant, как и на других бюджетных моделях, важно использовать флешку для Entware. При ошибках — раздел [частых вопросов](/faq/). Полный список моделей — на странице [«Модели Keenetic»](/models/).""",
+    },
+    {
+        "slug": "keenetic-hero-vless",
+        "title": "Keenetic Hero и VLESS + Reality — настройка 2026",
+        "meta_description": "Настройка VLESS + Reality на роутере Keenetic Hero (KN-2410): установка OPKG, Xray-core, конфигурация и проверка. Инструкция для модели с 4G.",
+        "meta_keywords": "keenetic hero vless, keenetic hero vless reality, hero kn-2410 vless, настройка vless keenetic hero, keenetic hero vpn, keenetic hero xray",
+        "content": """# Keenetic Hero и VLESS + Reality
+
+Keenetic Hero (KN-2410) — модель со встроенным 4G-модемом, подходящая для загородных домов и дач. Hero поддерживает OPKG и позволяет настроить VLESS + Reality через мобильный интернет.
+
+## Характеристики Hero
+
+- встроенный 4G-модем;
+- поддержка OPKG/Entware;
+- работа от SIM-карты.
+
+## Настройка на Keenetic Hero
+
+1. В веб-интерфейсе установите компоненты **OPKG** и **Файловая система Ext**.
+2. Подготовьте флешку с Entware.
+3. По SSH установите Xray-core.
+4. Сгенерируйте конфигурацию в [Генераторе](/generator/) и замените `04_outbounds.json`.
+5. Создайте политику XKeen и запустите соединение.
+
+Детальный алгоритм — в [пошаговой инструкции](/setup/). Установка ядра — в разделе [«Установка Xray на Keenetic»](/ustanovka-xray-keenetic/).
+
+## Особенности 4G
+
+При работе через мобильный интернет учитывайте лимиты тарифа. Настройте приоритет WAN: сначала 4G, затем Ethernet. При проблемах — раздел [частых вопросов](/faq/). Список моделей — на странице [«Модели Keenetic»](/models/).""",
+    },
+    {
+        "slug": "keenetic-vless-ne-rabotaet",
+        "title": "Keenetic VLESS не работает — решение проблем и ошибки",
+        "meta_description": "VLESS + Reality не работает на Keenetic? Разбор частых причин: ошибки конфигурации, недоступный сервер, проблемы Xray. Пошаговая диагностика и решения 2026.",
+        "meta_keywords": "keenetic vless не работает, vless reality не работает keenetic, ошибка xray keenetic, keenetic vless не подключается, xray не запускается keenetic, решение проблем vless keenetic",
+        "content": """# Keenetic VLESS не работает — решение проблем
+
+Если VLESS + Reality перестал работать на роутере Keenetic, причина почти всегда одна из перечисленных ниже. Разберём диагностику по шагам.
+
+## Шаг 1. Проверьте запуск Xray
+
+Выполните по SSH:
+
+```text
+xkeen -start
+logread | grep xray
+```
+
+Если процесс не запускается — проверьте синтаксис конфигурации командой `xray -c /opt/etc/xray/config.json -test`.
+
+## Шаг 2. Проверьте конфигурацию
+
+Убедитесь, что в файле `04_outbounds.json` указаны корректные значения:
+
+- UUID пользователя;
+- адрес и порт сервера;
+- публичный ключ Reality;
+- `serverName` (реальный сайт для маскировки).
+
+## Шаг 3. Проверьте доступность сервера
+
+```text
+ping АДРЕС_СЕРВЕРА
+telnet АДРЕС_СЕРВЕРА 443
+```
+
+Если сервер недоступен — проверьте, не заблокирован ли IP вашего VPS.
+
+## Шаг 4. Смените fingerprint
+
+Если соединение устанавливается, но скорость низкая или соединение рвётся, попробуйте сменить fingerprint: `chrome`, `firefox` или `safari`.
+
+## Частые причины
+
+- устаревший Xray-core — обновите его;
+- неправильный `serverName` — сайт должен быть реально доступен;
+- не заменён файл `05_routing.json` при выборочной маршрутизации.
+
+Подробности установки — в разделе [«Установка Xray на Keenetic»](/ustanovka-xray-keenetic/). Больше ответов — в [частых вопросах](/faq/) и [пошаговой инструкции](/setup/).""",
+    },
+    {
+        "slug": "obnovit-xray-keenetic",
+        "title": "Как обновить Xray на Keenetic — инструкция 2026",
+        "meta_description": "Как обновить Xray-core на роутере Keenetic: команды обновления через XKeen, замена файлов конфигурации, перезапуск. Пошаговая инструкция 2026.",
+        "meta_keywords": "обновить xray keenetic, обновление xray keenetic, xkeen обновление, обновить xray-core keenetic, xkeen -uk, обновление xray-core роутер",
+        "content": """# Как обновить Xray на Keenetic
+
+Регулярное обновление Xray-core важно для стабильной работы и совместимости с протоколом VLESS + Reality. Обновление выполняется через утилиту XKeen.
+
+## Обновление Xray-core
+
+Подключитесь к роутеру по SSH и выполните:
+
+```text
+opkg update
+xkeen -uk
+xkeen -ux
+```
+
+Выберите последнюю версию XKeen и подтвердите обновление.
+
+## Замена файлов конфигурации
+
+После обновления замените файлы конфигурации, если они изменились:
+
+- `04_outbounds.json` — исходящие подключения;
+- `05_routing.json` — правила маршрутизации.
+
+Файлы находятся в папке `/etc/xray/configs/`. Новую конфигурацию можно сгенерировать в [Генераторе](/generator/).
+
+## Перезапуск
+
+После замены файлов перезапустите XKeen:
+
+```text
+xkeen -restart
+```
+
+## Проверка
+
+Убедитесь, что Xray запущен и соединение работает:
+
+```text
+logread | grep xray
+```
+
+Подробности установки — в разделе [«Установка Xray на Keenetic»](/ustanovka-xray-keenetic/). При проблемах после обновления — [частые вопросы](/faq/) и [пошаговая инструкция](/setup/).""",
+    },
+    {
+        "slug": "keenetic-marshrutizaciya-vless",
+        "title": "Маршрутизация VLESS на Keenetic — выборочный трафик",
+        "meta_description": "Как настроить выборочную маршрутизацию VLESS на Keenetic: политики доступа, файл 05_routing.json, разделение трафика по доменам. Инструкция 2026.",
+        "meta_keywords": "маршрутизация vless keenetic, split tunneling keenetic, выборочная маршрутизация keenetic, keenetic vless маршрутизация, 05_routing.json keenetic, политики доступа keenetic",
+        "content": """# Маршрутизация VLESS на Keenetic
+
+Выборочная маршрутизация (split tunneling) позволяет направить через VLESS + Reality только нужный трафик, а остальные сайты — напрямую. Это удобно, когда требуется обходить блокировки только части ресурсов.
+
+## Способ 1. Политики доступа
+
+В веб-интерфейсе Keenetic можно создать политики для отдельных устройств:
+
+1. Откройте раздел **«Политики доступа»**.
+2. Создайте политику XKeen и отметьте нужное подключение.
+3. Привяжите политику к отдельной Wi-Fi сети или устройству.
+
+## Способ 2. Файл 05_routing.json
+
+Для тонкой настройки по доменам используйте файл `05_routing.json` в папке `/etc/xray/configs/`. Например, правило `"geosite:category-ru"` → `"direct"` направляет российские сайты напрямую, а остальные — через VPN.
+
+Замените файл на роутере и перезапустите XKeen:
+
+```text
+xkeen -restart
+```
+
+## Что выбрать
+
+- Политики доступа — для разделения по устройствам.
+- `05_routing.json` — для разделения по доменам и IP.
+
+Подробности — в [пошаговой инструкции](/setup/) и разделе [«Установка Xray на Keenetic»](/ustanovka-xray-keenetic/). Ответы на вопросы — в [частых вопросах](/faq/).""",
+    },
 ]
 
 
