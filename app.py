@@ -43,6 +43,30 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
+# ---------------------------------------------------------------------------
+# Безопасность: усиление cookie и лимит размера тела запроса
+# ---------------------------------------------------------------------------
+_use_secure_cookie = config.SITE_URL.startswith("https://")
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = _use_secure_cookie
+app.config["REMEMBER_COOKIE_HTTPONLY"] = True
+app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
+app.config["REMEMBER_COOKIE_SECURE"] = _use_secure_cookie
+app.config["MAX_CONTENT_LENGTH"] = 512 * 1024  # 512 КБ — защита от переполнения тела запроса
+
+
+@app.after_request
+def set_security_headers(resp):
+    """Заголовки безопасности (защита в глубину, поверх Caddy)."""
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    resp.headers.setdefault("X-XSS-Protection", "1; mode=block")
+    resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    resp.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+    return resp
+
+
 login_manager = LoginManager(app)
 login_manager.login_view = "login_page"
 login_manager.login_message = "Войдите через Telegram для доступа."
@@ -508,8 +532,15 @@ def resolve_geo(ip: str) -> tuple[str, str]:
 
 
 def ping_tcp(host: str, port: int, timeout: int = 5) -> tuple[bool, int | None]:
-    """TCP-пинг: пробует подключиться к host:port. Возвращает (ok, задержка_мс)."""
+    """TCP-пинг: пробует подключиться к host:port. Возвращает (ok, задержка_мс).
+
+    Безопасно: host предварительно резолвится и проверяется через
+    _is_safe_target(), чтобы исключить SSRF (обращение к локальной сети,
+    метаданным облака и т.п.).
+    """
     if not host or not port:
+        return False, None
+    if not _is_safe_target(host):
         return False, None
     start = time.time()
     try:
@@ -519,6 +550,23 @@ def ping_tcp(host: str, port: int, timeout: int = 5) -> tuple[bool, int | None]:
         return True, latency
     except Exception:
         return False, None
+
+
+def _is_safe_target(host: str) -> bool:
+    """Проверяет, что хост — публичный IP (не приватный/локальный)."""
+    try:
+        ips = socket.getaddrinfo(host, None)
+    except Exception:
+        return False
+    for addr in ips:
+        ip_str = addr[4][0]
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            continue
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+            return False
+    return bool(ips)
 
 
 def resolve_host_to_ip(host: str) -> str | None:
@@ -609,6 +657,32 @@ def log_visit():
 # ---------------------------------------------------------------------------
 # Telegram auth helpers
 # ---------------------------------------------------------------------------
+# Простое in-memory ограничение попыток (rate limiting) по IP/ключу.
+# Для продакшена с несколькими воркерами лучше заменить на redis, но
+# в рамках одного gunicorn-воркера этого достаточно.
+_LOGIN_ATTEMPTS: dict[str, list[float]] = {}
+_LOGIN_WINDOW = 60        # окно в секундах
+_LOGIN_MAX_ATTEMPTS = 5   # максимум попыток в окне
+
+
+def _too_many_attempts(key: str, max_attempts: int, window: int) -> bool:
+    """True, если по ключу превышен лимит попыток за окно."""
+    now = time.time()
+    attempts = [t for t in _LOGIN_ATTEMPTS.get(key, []) if now - t < window]
+    _LOGIN_ATTEMPTS[key] = attempts
+    if len(attempts) >= max_attempts:
+        return True
+    attempts.append(now)
+    _LOGIN_ATTEMPTS[key] = attempts
+    return False
+
+
+def _rate_limit_key() -> str:
+    """Ключ для ограничения по IP клиента."""
+    ip = get_client_ip()
+    return f"ip:{ip}"
+
+
 def verify_telegram_data(data: dict) -> bool:
     """Проверка подписи данных от Telegram Login Widget."""
     if not config.BOT_TOKEN:
@@ -712,6 +786,14 @@ def telegram_auth():
     if not verify_telegram_data(dict(data)):
         return jsonify({"ok": False, "error": "Invalid signature"}), 403
 
+    # Защита от replay: auth_date не старше 24 часов
+    try:
+        auth_date = int(data.get("auth_date", 0) or 0)
+    except (TypeError, ValueError):
+        auth_date = 0
+    if not auth_date or (time.time() - auth_date) > 86400:
+        return jsonify({"ok": False, "error": "Auth data expired"}), 403
+
     tg_id = int(data["id"])
     user = User.query.filter_by(telegram_id=tg_id).first()
 
@@ -766,6 +848,10 @@ def admin_login():
     username = data.get("username", "").strip()
     password = data.get("password", "")
 
+    # Ограничение попыток входа по IP
+    if _too_many_attempts(_rate_limit_key(), _LOGIN_MAX_ATTEMPTS, _LOGIN_WINDOW):
+        return jsonify({"ok": False, "error": "Слишком много попыток. Попробуйте позже."}), 429
+
     # Проверка reCAPTCHA v3 (если настроена и модуль включён)
     recaptcha_enabled = (
         config.RECAPTCHA_SITE_KEY
@@ -815,6 +901,10 @@ def admin_2fa_verify():
     """Проверка кода 2FA (второй шаг входа)."""
     data = request.get_json(force=True) or {}
     code = (data.get("code") or "").strip()
+
+    # Ограничение попыток подбора 2FA-кода
+    if _too_many_attempts(_rate_limit_key(), 10, 60):
+        return jsonify({"ok": False, "error": "Слишком много попыток. Попробуйте позже."}), 429
 
     admin_id = session.get("admin_2fa_pending_id")
     if not admin_id:
@@ -1500,6 +1590,10 @@ def api_announcement():
 @app.route("/generator/api/save/", methods=["POST"])
 def generator_api_save():
     """Сохраняет уникальную сгенерированную ссылку (пинг + локация)."""
+    # Ограничение по IP — защита от флуда запросами и SSRF-сканирования
+    if _too_many_attempts(_rate_limit_key(), 10, 60):
+        return jsonify({"ok": False, "error": "Слишком много запросов. Попробуйте позже."}), 429
+
     data = request.get_json(force=True) or {}
     url = (data.get("url") or "").strip()
     config_json = data.get("config") or ""
@@ -1507,11 +1601,15 @@ def generator_api_save():
     if not url:
         return jsonify({"ok": False, "error": "Пустая ссылка"}), 400
 
+    # Валидация протокола ссылки
+    protocol, address, port = parse_link(url)
+    if protocol not in ("vmess", "vless", "trojan", "ss"):
+        return jsonify({"ok": False, "error": "Неподдерживаемый протокол"}), 400
+
     # Уникальность: дубликаты не записываем
     if GeneratedConfig.query.filter_by(url=url).first():
         return jsonify({"ok": True, "duplicate": True})
 
-    protocol, address, port = parse_link(url)
     ping_ok, ping_time = ping_tcp(address, port) if address else (False, None)
     country, city = geolocate_address(address) if address else ("", "")
 
