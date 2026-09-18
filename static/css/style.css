@@ -51,7 +51,13 @@ ul,ol{padding-left:1.5rem}
 .bg-particle{position:absolute;top:-30px;border-radius:50%;opacity:0;animation:particleFloat linear infinite}
 .bg-particle.bgp-dot{border-radius:50%}
 .bg-particle.bgp-leaf{border-radius:0 50% 0 50%;animation-name:particleFloatLeaf}
-.bg-particle.bgp-snow{border-radius:50%;background:#fff!important;opacity:0}
+.bg-particle.bgp-snow{border-radius:50%;background:#fff!important;opacity:0;box-shadow:0 0 8px rgba(144,202,249,.95);animation-name:particleFloatSnow}
+@keyframes particleFloatSnow{
+    0%{transform:translateY(0)translateX(0)scale(.9);opacity:0}
+    10%{opacity:.85}
+    85%{opacity:.6}
+    100%{transform:translateY(105vh)translateX(20px)scale(1.05);opacity:0}
+}
 .bg-particle.bgp-petal{border-radius:50% 0 50% 50%;animation-name:particleFloatLeaf}
 .bg-particle.bgp-star{clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation-name:particleFloatSpin}
 .bg-particle.bgp-bauble{border-radius:50%;animation-name:particleFloatSpin}
