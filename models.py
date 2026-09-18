@@ -127,16 +127,19 @@ class EditorBlock(db.Model):
 # =========================================================================
 class VisitStat(db.Model):
     __tablename__ = "visit_stats"
+    __table_args__ = (
+        db.Index("ix_visit_stats_ip_path_bot", "ip", "path", "is_bot"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     ip = db.Column(db.String(45), index=True)
-    city = db.Column(db.String(128), default="")
+    city = db.Column(db.String(128), default="", index=True)
     country = db.Column(db.String(64), default="")
-    path = db.Column(db.String(512), default="/")
+    path = db.Column(db.String(512), default="/", index=True)
     user_agent = db.Column(db.String(512), default="")
     referrer = db.Column(db.String(512), default="")
     is_authenticated = db.Column(db.Boolean, default=False)
-    is_bot = db.Column(db.Boolean, default=False)
+    is_bot = db.Column(db.Boolean, default=False, index=True)
     user_id = db.Column(db.Integer, nullable=True)
     created_at = db.Column(
         db.DateTime,

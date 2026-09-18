@@ -531,6 +531,38 @@ def resolve_geo(ip: str) -> tuple[str, str]:
     return "", ""
 
 
+def resolve_geo_batch(ips: list[str]) -> dict[str, tuple[str, str]]:
+    """Пакетная геолокация IP через ip-api.com (один HTTP-запрос, до 100 IP).
+
+    Гораздо быстрее поштучных вызовов: страница статистики ждёт максимум один
+    сетевой запрос с таймаутом, а не N последовательных.
+    """
+    result: dict[str, tuple[str, str]] = {}
+    public_ips = [ip for ip in ips if ip and not is_private_ip(ip)]
+    if not public_ips:
+        return result
+
+    try:
+        import requests as req_lib
+        resp = req_lib.post(
+            "https://ip-api.com/batch",
+            json=public_ips[:100],
+            params={"fields": "status,country,city,query", "lang": "ru"},
+            timeout=5,
+        )
+        data = resp.json()
+        if isinstance(data, list):
+            for entry in data:
+                if isinstance(entry, dict) and entry.get("status") == "success":
+                    result[entry.get("query")] = (
+                        entry.get("city") or "",
+                        entry.get("country") or "",
+                    )
+    except Exception:
+        pass
+    return result
+
+
 def ping_tcp(host: str, port: int, timeout: int = 5) -> tuple[bool, int | None]:
     """TCP-пинг: пробует подключиться к host:port. Возвращает (ok, задержка_мс).
 
@@ -1455,26 +1487,37 @@ def admin_stats():
 
     grouped_visits = grouped_query.offset((page - 1) * per_page).limit(per_page).all()
 
-    # Разрешаем гео для уникальных IP из сгруппированного списка
+    # Гео-данные для уникальных IP из текущей страницы:
+    # 1) сначала берём из БД одним запросом;
+    # 2) недостающие разрешаем одним пакетным HTTP-запросом (не по одному).
     geo_cache: dict[str, tuple[str, str]] = {}
     changed = False
-    for row in grouped_visits:
-        ip = row[0]
-        if ip in geo_cache or is_private_ip(ip):
-            continue
-        existing = db.session.query(VisitStat.city, VisitStat.country).filter(
-            VisitStat.ip == ip, VisitStat.city != ""
-        ).first()
-        if existing:
-            geo_cache[ip] = (existing[0], existing[1])
-        else:
-            city, country = resolve_geo(ip)
+    page_ips = [row[0] for row in grouped_visits]
+
+    known = db.session.query(
+        VisitStat.ip, VisitStat.city, VisitStat.country
+    ).filter(
+        VisitStat.ip.in_(page_ips),
+        VisitStat.city != "",
+    ).all()
+    for ip, city, country in known:
+        if city:
             geo_cache[ip] = (city, country)
-            if city:
-                VisitStat.query.filter_by(ip=ip).update(
-                    {"city": city, "country": country}
-                )
-                changed = True
+
+    unresolved = [
+        ip for ip in page_ips
+        if ip not in geo_cache and not is_private_ip(ip)
+    ]
+    resolved = resolve_geo_batch(unresolved)
+    geo_cache.update(resolved)
+
+    for ip, (city, country) in resolved.items():
+        if city:
+            VisitStat.query.filter_by(ip=ip).update(
+                {"city": city, "country": country},
+                synchronize_session=False,
+            )
+            changed = True
     if changed:
         db.session.commit()
 
@@ -1912,6 +1955,21 @@ def migrate_db():
             with db.engine.begin() as conn:
                 if "is_bot" not in cols:
                     conn.execute(text("ALTER TABLE visit_stats ADD COLUMN is_bot BOOLEAN DEFAULT 0"))
+
+            # Индексы для ускорения статистики (группировки по path/city/is_bot).
+            existing_indexes = {ix["name"] for ix in inspector.get_indexes("visit_stats")}
+            index_specs = [
+                ("ix_visit_stats_path", ["path"]),
+                ("ix_visit_stats_city", ["city"]),
+                ("ix_visit_stats_is_bot", ["is_bot"]),
+                ("ix_visit_stats_ip_path_bot", ["ip", "path", "is_bot"]),
+            ]
+            for name, idx_cols in index_specs:
+                if name not in existing_indexes:
+                    with db.engine.begin() as conn:
+                        conn.execute(text(
+                            f"CREATE INDEX {name} ON visit_stats ({', '.join(idx_cols)})"
+                        ))
     except Exception as e:
         app.logger.warning(f"Миграция БД пропущена: {e}")
 
