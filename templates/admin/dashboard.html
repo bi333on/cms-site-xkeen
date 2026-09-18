@@ -160,12 +160,13 @@
                     </p>
                     <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
                         <select id="bgThemeSelect" style="padding:0.5rem 0.75rem;border:1px solid var(--gray-300);border-radius:8px;font-size:0.95rem;background:var(--white);">
-                            <option value="particles" {% if bg_theme == 'particles' %}selected{% endif %}>🟠 Парящие частицы</option>
-                            <option value="summer" {% if bg_theme == 'summer' %}selected{% endif %}>🌿 Лето — парящие листья</option>
-                            <option value="winter" {% if bg_theme == 'winter' %}selected{% endif %}>❄️ Зима — падающие снежинки</option>
-                            <option value="spring" {% if bg_theme == 'spring' %}selected{% endif %}>🌸 Весна — лепестки цветов</option>
-                            <option value="autumn" {% if bg_theme == 'autumn' %}selected{% endif %}>🍂 Осень — падающие листья</option>
-                            <option value="newyear" {% if bg_theme == 'newyear' %}selected{% endif %}>🎄 Новый год — конфетти</option>
+                            <option value="auto" {% if bg_theme_saved == 'auto' %}selected{% endif %}>🕒 Авто — по времени года</option>
+                            <option value="particles" {% if bg_theme_saved == 'particles' %}selected{% endif %}>🟠 Парящие частицы</option>
+                            <option value="summer" {% if bg_theme_saved == 'summer' %}selected{% endif %}>🌿 Лето — парящие листья</option>
+                            <option value="winter" {% if bg_theme_saved == 'winter' %}selected{% endif %}>❄️ Зима — падающие снежинки</option>
+                            <option value="spring" {% if bg_theme_saved == 'spring' %}selected{% endif %}>🌸 Весна — лепестки цветов</option>
+                            <option value="autumn" {% if bg_theme_saved == 'autumn' %}selected{% endif %}>🍂 Осень — падающие листья</option>
+                            <option value="newyear" {% if bg_theme_saved == 'newyear' %}selected{% endif %}>🎄 Новый год — конфетти</option>
                         </select>
                         <button class="btn btn-orange btn-sm" id="saveBgThemeBtn">💾 Сохранить</button>
                         <span id="bgThemeStatus" style="font-size:0.85rem;color:var(--gray-500);"></span>

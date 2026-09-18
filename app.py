@@ -147,8 +147,8 @@ NAV_VISIBLE_COUNT_DEFAULT = 4
 
 # Ключ настройки: тема анимированного фона
 BG_THEME_KEY = "bg_theme"
-BG_THEME_DEFAULT = "particles"
-BG_THEME_CHOICES = ("particles", "summer", "winter", "spring", "autumn", "newyear")
+BG_THEME_DEFAULT = "auto"
+BG_THEME_CHOICES = ("auto", "particles", "summer", "winter", "spring", "autumn", "newyear")
 
 
 def _get_setting(key: str, default: str = "") -> str:
@@ -178,9 +178,42 @@ def _get_nav_visible_count() -> int:
 
 
 def _get_bg_theme() -> str:
-    """Текущая тема анимированного фона (значение из БД с валидацией)."""
+    """Текущая тема анимированного фона (значение из БД с валидацией).
+
+    Если выбрана тема "auto" — тема определяется по текущей дате.
+    """
     value = _get_setting(BG_THEME_KEY, BG_THEME_DEFAULT)
-    return value if value in BG_THEME_CHOICES else BG_THEME_DEFAULT
+    if value not in BG_THEME_CHOICES:
+        value = BG_THEME_DEFAULT
+    if value == "auto":
+        return _seasonal_bg_theme()
+    return value
+
+
+def _seasonal_bg_theme() -> str:
+    """Возвращает тему фона по текущей дате.
+
+    - Новый год: 25 декабря — 10 января (включительно);
+    - Зима: декабрь — февраль;
+    - Весна: март — май;
+    - Лето: июнь — август;
+    - Осень: сентябрь — ноябрь.
+    """
+    now = datetime.now(timezone.utc)
+    month = now.month
+    day = now.day
+
+    # Новый год: 25.12 – 10.01 (переход через границу года)
+    if (month == 12 and day >= 25) or (month == 1 and day <= 10):
+        return "newyear"
+
+    if month in (12, 1, 2):
+        return "winter"
+    if month in (3, 4, 5):
+        return "spring"
+    if month in (6, 7, 8):
+        return "summer"
+    return "autumn"
 
 
 def _get_primary_nav_items():
@@ -1098,6 +1131,7 @@ def admin_dashboard():
         nav_visible_count=nav_visible_count,
         nav_total_count=nav_total_count,
         bg_theme=_get_bg_theme(),
+        bg_theme_saved=_get_setting(BG_THEME_KEY, BG_THEME_DEFAULT),
     )
 
 
