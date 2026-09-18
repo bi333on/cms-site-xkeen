@@ -25,7 +25,7 @@
 
     var theme = null;
     var bodyClass = document.body.className || '';
-    var m = bodyClass.match(/bg-([a-z]+)/);
+    var m = bodyClass.match(/bg-theme-([a-z]+)/);
     if (m && THEMES[m[1]]) theme = m[1];
     if (!theme) return;
 
