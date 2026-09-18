@@ -46,6 +46,16 @@
 
     <canvas id="stars-canvas"></canvas>
 
+    <!-- Анимированный фон: парящие частицы -->
+    <div class="bg-particles" aria-hidden="true">
+        <span class="bg-particle p1"></span>
+        <span class="bg-particle p2"></span>
+        <span class="bg-particle p3"></span>
+        <span class="bg-particle p4"></span>
+        <span class="bg-particle p5"></span>
+        <span class="bg-particle p6"></span>
+    </div>
+
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
