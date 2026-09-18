@@ -164,6 +164,18 @@
             nav.classList.toggle('open');
             this.setAttribute('aria-expanded', nav.classList.contains('open') ? 'true' : 'false');
         });
+
+        // Выпадающий список «Ещё» — открытие/закрытие по тапу (важно на мобильных)
+        var navDropdownToggle = document.querySelector('.nav-dropdown-toggle');
+        if (navDropdownToggle) {
+            navDropdownToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                var dd = this.closest('.nav-dropdown');
+                if (!dd) return;
+                var isOpen = dd.classList.toggle('open');
+                this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        }
         // Автоскрытие flash-сообщений
         setTimeout(function() {
             var flashes = document.querySelectorAll('.flash-msg');
