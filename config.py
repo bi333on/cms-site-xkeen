@@ -11,7 +11,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI: str = os.getenv("DATABASE_URL", "sqlite:///cms.db")
     BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
     ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "admin")
-    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "admin123")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")
 
     TELEGRAM_BOT_USERNAME: str = os.getenv("TELEGRAM_BOT_USERNAME", "YourBot")
 
@@ -43,6 +43,13 @@ class Config:
         if not self.INDEXNOW_KEY:
             import secrets
             object.__setattr__(self, "INDEXNOW_KEY", secrets.token_hex(16))
+        # Пароль администратора не должен быть пустым или слишком коротким —
+        # иначе админ-панель окажется доступна без надёжной защиты.
+        if len(self.ADMIN_PASSWORD) < 8:
+            raise RuntimeError(
+                "ADMIN_PASSWORD не задан или слишком короткий (мин. 8 символов). "
+                "Укажите его в .env."
+            )
 
 
 config = Config()

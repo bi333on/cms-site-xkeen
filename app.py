@@ -519,7 +519,7 @@ def resolve_geo(ip: str) -> tuple[str, str]:
     try:
         import requests as req_lib
         resp = req_lib.get(
-            f"http://ip-api.com/json/{ip}",
+            f"https://ip-api.com/json/{ip}",
             params={"fields": "status,country,city,query", "lang": "ru"},
             timeout=5,
         )
