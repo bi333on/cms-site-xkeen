@@ -66,6 +66,7 @@ ul,ol{padding-left:1.5rem}
 .bg-particle.bgp-rise{top:auto;bottom:-40px}
 .bg-particle.bgp-rise.bgp-dot{animation-name:particleRise}
 .bg-particle.bgp-rise.bgp-leaf{animation-name:particleRiseLeaf}
+.bg-particle.bgp-rise.bgp-petal{animation-name:particleRiseLeaf}
 @keyframes particleRise{
     0%{transform:translateY(0)translateX(0)scale(.8);opacity:0}
     10%{opacity:.32}
