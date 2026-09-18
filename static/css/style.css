@@ -49,16 +49,16 @@ ul,ol{padding-left:1.5rem}
 /* --- Анимированный фон: парящие частицы --- */
 .bg-particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
 .bg-particle{position:absolute;bottom:-20px;border-radius:50%;background:var(--orange);opacity:0;animation:particleFloat linear infinite}
-.bg-particle.p1{width:8px;height:8px;left:8%;animation-duration:14s;animation-delay:0s}
-.bg-particle.p2{width:5px;height:5px;left:22%;animation-duration:18s;animation-delay:3s}
-.bg-particle.p3{width:10px;height:10px;left:40%;animation-duration:16s;animation-delay:1.5s}
-.bg-particle.p4{width:6px;height:6px;left:58%;animation-duration:20s;animation-delay:4s}
-.bg-particle.p5{width:9px;height:9px;left:76%;animation-duration:17s;animation-delay:.8s}
-.bg-particle.p6{width:5px;height:5px;left:90%;animation-duration:19s;animation-delay:6s}
+.bg-particle.p1{width:10px;height:10px;left:8%;animation-duration:14s;animation-delay:0s}
+.bg-particle.p2{width:7px;height:7px;left:22%;animation-duration:18s;animation-delay:3s}
+.bg-particle.p3{width:13px;height:13px;left:40%;animation-duration:16s;animation-delay:1.5s}
+.bg-particle.p4{width:8px;height:8px;left:58%;animation-duration:20s;animation-delay:4s}
+.bg-particle.p5{width:11px;height:11px;left:76%;animation-duration:17s;animation-delay:.8s}
+.bg-particle.p6{width:7px;height:7px;left:90%;animation-duration:19s;animation-delay:6s}
 @keyframes particleFloat{
     0%{transform:translateY(0)scale(.7);opacity:0}
-    10%{opacity:.14}
-    85%{opacity:.10}
+    10%{opacity:.35}
+    85%{opacity:.25}
     100%{transform:translateY(-105vh)scale(1.25);opacity:0}
 }
 @media(prefers-reduced-motion:reduce){.bg-particle{animation:none!important;display:none}}
