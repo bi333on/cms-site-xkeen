@@ -1920,7 +1920,7 @@ def server_error(_e):
 def migrate_db():
     """Добавляет отсутствующие колонки в существующие таблицы (SQLite)."""
     try:
-        from sqlalchemy import inspect, text
+        from sqlalchemy import inspect, text, Index
         inspector = inspect(db.engine)
         existing_tables = inspector.get_table_names()
 
@@ -1964,12 +1964,11 @@ def migrate_db():
                 ("ix_visit_stats_is_bot", ["is_bot"]),
                 ("ix_visit_stats_ip_path_bot", ["ip", "path", "is_bot"]),
             ]
+            table = VisitStat.__table__
             for name, idx_cols in index_specs:
                 if name not in existing_indexes:
                     with db.engine.begin() as conn:
-                        conn.execute(text(
-                            f"CREATE INDEX {name} ON visit_stats ({', '.join(idx_cols)})"
-                        ))
+                        Index(name, *[table.c[c] for c in idx_cols]).create(bind=conn)
     except Exception as e:
         app.logger.warning(f"Миграция БД пропущена: {e}")
 
