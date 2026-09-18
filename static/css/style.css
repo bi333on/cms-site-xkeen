@@ -82,8 +82,8 @@ ul,ol{padding-left:1.5rem}
 
 /* --- Buttons --- */
 .btn{display:inline-block;padding:0.7rem 1.5rem;border-radius:var(--radius);font-weight:600;font-size:0.95rem;text-align:center;cursor:pointer;border:none;transition:all var(--transition);position:relative;overflow:hidden}
-.btn-orange{background:var(--orange);color:var(--black)}
-.btn-orange:hover{background:var(--orange-dark);color:var(--black);transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,107,0,0.3)}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-orange:hover{background:var(--orange-dark);color:#fff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,107,0,0.3)}
 .btn-black{background:var(--black);color:#fff}
 .btn-black:hover{background:var(--black-light);color:#fff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,26,46,0.3)}
 .btn-lg{padding:1rem 2.5rem;font-size:1.1rem;border-radius:var(--radius-lg)}
