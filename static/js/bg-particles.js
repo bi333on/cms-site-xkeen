@@ -8,8 +8,8 @@
     'use strict';
 
     var THEMES = {
-        particles: { count: 14, shapes: ['dot'], colors: ['#FF6B00', '#FFA34D'] },
-        summer:    { count: 12, shapes: ['leaf'], colors: ['#4CAF50', '#81C784', '#AED581'] },
+        particles: { count: 14, shapes: ['dot'], colors: ['#FF6B00', '#FFA34D'], rise: true },
+        summer:    { count: 12, shapes: ['leaf'], colors: ['#4CAF50', '#81C784', '#AED581'], rise: true },
         winter:    { count: 22, shapes: ['snow'], colors: ['#FFFFFF', '#B3E5FC', '#81D4FA'], size: [8, 16] },
         spring:    { count: 14, shapes: ['petal'], colors: ['#F8BBD0', '#E1BEE7', '#FFE082'] },
         autumn:    { count: 14, shapes: ['leaf'], colors: ['#E65100', '#F57C00', '#FFB300', '#8D6E63'] },
@@ -37,7 +37,7 @@
 
     for (var i = 0; i < cfg.count; i++) {
         var el = document.createElement('span');
-        el.className = 'bg-particle bgp-' + pick(cfg.shapes);
+        el.className = 'bg-particle bgp-' + pick(cfg.shapes) + (cfg.rise ? ' bgp-rise' : '');
         el.style.left = (Math.random() * 100) + '%';
         el.style.animationDuration = (10 + Math.random() * 14) + 's';
         el.style.animationDelay = (-Math.random() * 20) + 's';
