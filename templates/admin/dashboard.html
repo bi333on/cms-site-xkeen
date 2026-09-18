@@ -152,6 +152,25 @@
                         <span id="navSaveStatus" style="font-size:0.85rem;color:var(--gray-500);"></span>
                     </div>
                 </div>
+
+                <div class="admin-card">
+                    <h3>✨ Анимированный фон</h3>
+                    <p style="color:var(--gray-600);margin-bottom:1rem;">
+                        Выберите тему фоновой анимации. Изменение применится сразу на сайте.
+                    </p>
+                    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                        <select id="bgThemeSelect" style="padding:0.5rem 0.75rem;border:1px solid var(--gray-300);border-radius:8px;font-size:0.95rem;background:var(--white);">
+                            <option value="particles" {% if bg_theme == 'particles' %}selected{% endif %}>🟠 Парящие частицы</option>
+                            <option value="summer" {% if bg_theme == 'summer' %}selected{% endif %}>🌿 Лето — парящие листья</option>
+                            <option value="winter" {% if bg_theme == 'winter' %}selected{% endif %}>❄️ Зима — падающие снежинки</option>
+                            <option value="spring" {% if bg_theme == 'spring' %}selected{% endif %}>🌸 Весна — лепестки цветов</option>
+                            <option value="autumn" {% if bg_theme == 'autumn' %}selected{% endif %}>🍂 Осень — падающие листья</option>
+                            <option value="newyear" {% if bg_theme == 'newyear' %}selected{% endif %}>🎄 Новый год — конфетти</option>
+                        </select>
+                        <button class="btn btn-orange btn-sm" id="saveBgThemeBtn">💾 Сохранить</button>
+                        <span id="bgThemeStatus" style="font-size:0.85rem;color:var(--gray-500);"></span>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -222,6 +241,41 @@
                 .then(function(d) {
                     if (d.ok) {
                         status.textContent = '✅ Сохранено: ' + d.nav_visible_count + ' пункт(ов) в шапке';
+                        status.style.color = '#2E7D32';
+                    } else {
+                        status.textContent = '❌ ' + (d.error || 'Ошибка');
+                        status.style.color = '#C62828';
+                    }
+                    btn.disabled = false;
+                    btn.textContent = '💾 Сохранить';
+                })
+                .catch(function(e) {
+                    status.textContent = 'Ошибка соединения: ' + e.message;
+                    status.style.color = '#C62828';
+                    btn.disabled = false;
+                    btn.textContent = '💾 Сохранить';
+                });
+        });
+
+        document.getElementById('saveBgThemeBtn').addEventListener('click', function() {
+            var select = document.getElementById('bgThemeSelect');
+            var status = document.getElementById('bgThemeStatus');
+            var value = select.value;
+
+            var btn = this;
+            btn.disabled = true;
+            btn.textContent = '⏳ Сохранение...';
+            status.textContent = '';
+
+            fetch('/admin/settings/bg/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({bg_theme: value})
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.ok) {
+                        status.textContent = '✅ Сохранено';
                         status.style.color = '#2E7D32';
                     } else {
                         status.textContent = '❌ ' + (d.error || 'Ошибка');

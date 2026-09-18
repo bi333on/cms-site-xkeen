@@ -84,6 +84,7 @@ def inject_globals():
         "ym_webmaster": config.YANDEX_WEBMASTER,
         "bot_username": config.TELEGRAM_BOT_USERNAME,
         "current_year": datetime.now(timezone.utc).year,
+        "bg_theme": _get_bg_theme(),
         "enabled_modules": _get_enabled_modules(),
         "nav_items": _get_nav_items(),
         "primary_nav_items": _get_primary_nav_items(),
@@ -144,6 +145,11 @@ PRIMARY_NAV_URLS = ("/", "/models/", "/setup/", "/faq/")
 NAV_VISIBLE_COUNT_KEY = "nav_visible_count"
 NAV_VISIBLE_COUNT_DEFAULT = 4
 
+# Ключ настройки: тема анимированного фона
+BG_THEME_KEY = "bg_theme"
+BG_THEME_DEFAULT = "particles"
+BG_THEME_CHOICES = ("particles", "summer", "winter", "spring", "autumn", "newyear")
+
 
 def _get_setting(key: str, default: str = "") -> str:
     """Возвращает значение настройки из БД (или default, если её нет)."""
@@ -169,6 +175,12 @@ def _get_nav_visible_count() -> int:
         return max(1, int(_get_setting(NAV_VISIBLE_COUNT_KEY, str(NAV_VISIBLE_COUNT_DEFAULT))))
     except (TypeError, ValueError):
         return NAV_VISIBLE_COUNT_DEFAULT
+
+
+def _get_bg_theme() -> str:
+    """Текущая тема анимированного фона (значение из БД с валидацией)."""
+    value = _get_setting(BG_THEME_KEY, BG_THEME_DEFAULT)
+    return value if value in BG_THEME_CHOICES else BG_THEME_DEFAULT
 
 
 def _get_primary_nav_items():
@@ -1085,7 +1097,21 @@ def admin_dashboard():
         totp_enabled=totp_enabled,
         nav_visible_count=nav_visible_count,
         nav_total_count=nav_total_count,
+        bg_theme=_get_bg_theme(),
     )
+
+
+@app.route("/admin/settings/bg/", methods=["POST"])
+@admin_required
+def admin_save_bg_theme():
+    """Сохраняет тему анимированного фона."""
+    data = request.get_json(force=True) or {}
+    theme = str(data.get("bg_theme", "")).strip().lower()
+    if theme not in BG_THEME_CHOICES:
+        return jsonify({"ok": False, "error": "Неверная тема фона"}), 400
+    _set_setting(BG_THEME_KEY, theme)
+    db.session.commit()
+    return jsonify({"ok": True, "bg_theme": theme})
 
 
 @app.route("/admin/settings/nav/", methods=["POST"])
