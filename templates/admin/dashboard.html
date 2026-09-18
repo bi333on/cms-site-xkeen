@@ -14,33 +14,33 @@
             <div class="admin-logo">
                 <a href="/">⚡ VLESS-Keenetic</a>
             </div>
-            <nav class="admin-nav">
-                <a href="/admin/dashboard/" class="admin-nav-item active">
-                    <span class="nav-icon">📊</span> Дашборд
+            <nav class="admin-nav" aria-label="Основная навигация">
+                <a href="/admin/dashboard/" class="admin-nav-item active" title="Дашборд">
+                    <span class="nav-icon" aria-hidden="true">📊</span> Дашборд
                 </a>
-                <a href="/admin/stats/" class="admin-nav-item">
-                    <span class="nav-icon">📈</span> Статистика
+                <a href="/admin/stats/" class="admin-nav-item" title="Статистика">
+                    <span class="nav-icon" aria-hidden="true">📈</span> Статистика
                 </a>
-                <a href="/admin/messages/" class="admin-nav-item">
-                    <span class="nav-icon">💬</span> Сообщения
+                <a href="/admin/messages/" class="admin-nav-item" title="Сообщения">
+                    <span class="nav-icon" aria-hidden="true">💬</span> Сообщения
                 </a>
-                <a href="/admin/users/" class="admin-nav-item">
-                    <span class="nav-icon">👥</span> Пользователи
+                <a href="/admin/users/" class="admin-nav-item" title="Пользователи">
+                    <span class="nav-icon" aria-hidden="true">👥</span> Пользователи
                 </a>
-                <a href="/admin/pages/" class="admin-nav-item">
-                    <span class="nav-icon">📄</span> Страницы
+                <a href="/admin/pages/" class="admin-nav-item" title="Страницы">
+                    <span class="nav-icon" aria-hidden="true">📄</span> Страницы
                 </a>
-                <a href="/admin/blocks/" class="admin-nav-item">
-                    <span class="nav-icon">🧱</span> Блоки
+                <a href="/admin/blocks/" class="admin-nav-item" title="Блоки">
+                    <span class="nav-icon" aria-hidden="true">🧱</span> Блоки
                 </a>
-                <a href="/admin/modules/" class="admin-nav-item">
-                    <span class="nav-icon">📦</span> Модули
+                <a href="/admin/modules/" class="admin-nav-item" title="Модули">
+                    <span class="nav-icon" aria-hidden="true">📦</span> Модули
                 </a>
-                <a href="/admin/generator/" class="admin-nav-item">
-                    <span class="nav-icon">⚙️</span> Генератор
+                <a href="/admin/generator/" class="admin-nav-item" title="Генератор">
+                    <span class="nav-icon" aria-hidden="true">⚙️</span> Генератор
                 </a>
-                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout">
-                    <span class="nav-icon">🚪</span> Выйти
+                <a href="/admin/logout/" class="admin-nav-item admin-nav-logout" title="Выйти">
+                    <span class="nav-icon" aria-hidden="true">🚪</span> Выйти
                 </a>
             </nav>
         </aside>
@@ -58,42 +58,42 @@
             <div class="admin-content">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">👥</div>
+                        <div class="stat-icon" aria-hidden="true">👥</div>
                         <div class="stat-info">
                             <span class="stat-value">{{ total }}</span>
                             <span class="stat-label">Пользователей всего</span>
                         </div>
                     </div>
                     <div class="stat-card stat-green">
-                        <div class="stat-icon">✅</div>
+                        <div class="stat-icon" aria-hidden="true">✅</div>
                         <div class="stat-info">
                             <span class="stat-value">{{ active }}</span>
                             <span class="stat-label">Активных</span>
                         </div>
                     </div>
                     <div class="stat-card stat-orange">
-                        <div class="stat-icon">📅</div>
+                        <div class="stat-icon" aria-hidden="true">📅</div>
                         <div class="stat-info">
                             <span class="stat-value">{{ today_users }}</span>
                             <span class="stat-label">За сегодня</span>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">📄</div>
+                        <div class="stat-icon" aria-hidden="true">📄</div>
                         <div class="stat-info">
                             <span class="stat-value">{{ pages_count }}</span>
                             <span class="stat-label">Страниц</span>
                         </div>
                     </div>
                     <div class="stat-card stat-orange">
-                        <div class="stat-icon">👁</div>
+                        <div class="stat-icon" aria-hidden="true">👁</div>
                         <div class="stat-info">
                             <span class="stat-value">{{ visits_count }}</span>
                             <span class="stat-label">Визитов</span>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">📦</div>
+                        <div class="stat-icon" aria-hidden="true">📦</div>
                         <div class="stat-info">
                             <span class="stat-value">{{ modules_count }}</span>
                             <span class="stat-label">Модулей</span>

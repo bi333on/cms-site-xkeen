@@ -82,8 +82,8 @@ ul,ol{padding-left:1.5rem}
 
 /* --- Buttons --- */
 .btn{display:inline-block;padding:0.7rem 1.5rem;border-radius:var(--radius);font-weight:600;font-size:0.95rem;text-align:center;cursor:pointer;border:none;transition:all var(--transition);position:relative;overflow:hidden}
-.btn-orange{background:var(--orange);color:#fff}
-.btn-orange:hover{background:var(--orange-dark);color:#fff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,107,0,0.3)}
+.btn-orange{background:var(--orange);color:var(--black)}
+.btn-orange:hover{background:var(--orange-dark);color:var(--black);transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,107,0,0.3)}
 .btn-black{background:var(--black);color:#fff}
 .btn-black:hover{background:var(--black-light);color:#fff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,26,46,0.3)}
 .btn-lg{padding:1rem 2.5rem;font-size:1.1rem;border-radius:var(--radius-lg)}
@@ -292,7 +292,7 @@ ul,ol{padding-left:1.5rem}
 
 /* Admin Table */
 .admin-table{width:100%;border-collapse:collapse;font-size:0.85rem}
-.admin-table th{background:var(--gray-100);padding:0.7rem 0.85rem;text-align:left;font-weight:600;color:var(--gray-600);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid var(--gray-200)}
+.admin-table th{position:sticky;top:0;z-index:1;background:var(--gray-100);padding:0.7rem 0.85rem;text-align:left;font-weight:600;color:var(--gray-600);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid var(--gray-200)}
 .admin-table td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
 .admin-table tr:hover td{background:var(--orange-light)}
 .loading-cell{text-align:center;color:var(--gray-400);padding:2rem!important}
@@ -477,6 +477,15 @@ ul,ol{padding-left:1.5rem}
     .stats-grid{grid-template-columns:1fr 1fr;gap:0.75rem}
     .stat-card{padding:1rem}
     .stat-value{font-size:1.4rem}
+}
+
+/* --- Accessibility (a11y) --- */
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px;border-radius:4px}
+h1,h2,h3{text-wrap:balance}
+@media(prefers-reduced-motion:reduce){
+    #stars-canvas{display:none}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    html{scroll-behavior:auto}
 }
 
 /* --- Editor specific --- */
