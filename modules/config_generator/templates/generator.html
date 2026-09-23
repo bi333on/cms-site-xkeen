@@ -278,7 +278,10 @@
             var userInfo = m[2];
             var address = m[3];
             var port = parseInt(m[4], 10);
-            var params = new URLSearchParams(m[6] || '');
+            // Отрезаем фрагмент (#...) из query-строки, чтобы метки вроде
+            // "#DE-TCP-Route" не попадали в значения параметров (например, sid)
+            var query = (m[6] || '').split('#')[0];
+            var params = new URLSearchParams(query);
 
             if (port !== 443 && protocol !== 'ss') {
                 warnings.push('⚠️ Рекомендуется использовать порт 443.');
