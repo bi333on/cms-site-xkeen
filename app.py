@@ -1736,8 +1736,29 @@ def generator_api_save():
 @app.route("/admin/generator/")
 @admin_required
 def admin_generator():
-    configs = GeneratedConfig.query.order_by(GeneratedConfig.created_at.desc()).all()
-    return render_template("admin/generator.html", configs=configs)
+    page = request.args.get("page", 1, type=int)
+    per_page = 50
+    if page < 1:
+        page = 1
+
+    total = GeneratedConfig.query.count()
+    total_pages = max(1, -(-total // per_page))
+    if page > total_pages:
+        page = total_pages
+
+    configs = (
+        GeneratedConfig.query.order_by(GeneratedConfig.created_at.desc())
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .all()
+    )
+    return render_template(
+        "admin/generator.html",
+        configs=configs,
+        page=page,
+        total_pages=total_pages,
+        total=total,
+    )
 
 
 @app.route("/admin/generator/<int:cfg_id>/recheck/", methods=["POST"])
