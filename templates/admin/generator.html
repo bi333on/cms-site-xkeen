@@ -50,7 +50,7 @@
                                     <tr id="row{{ c.id }}">
                                         <td>{{ c.id }}</td>
                                         <td><span class="status-badge status-warning">{{ c.protocol or '—' }}</span></td>
-                                        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ c.url }}"><code>{{ c.url[:60] }}{% if c.url|length > 60 %}…{% endif %}</code> <button class="btn-table copy-link-btn" data-url="{{ c.url }}" title="Скопировать ссылку">📋</button></td>
+                                        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ c.url }}"><code>{{ c.url[:60] }}{% if c.url|length > 60 %}…{% endif %}</code></td>
                                         <td><code>{{ c.address or '—' }}{% if c.port %}:{{ c.port }}{% endif %}</code></td>
                                         <td id="ping{{ c.id }}">
                                             {% if c.ping_ok %}
@@ -64,6 +64,7 @@
                                         </td>
                                         <td>{{ c.checked_at.strftime('%d.%m.%Y %H:%M') if c.checked_at else '—' }}</td>
                                         <td>
+                                            <button class="btn-table copy-link-btn" data-url="{{ c.url }}" title="Скопировать ссылку">📋</button>
                                             <button class="btn-table btn-table-toggle" onclick="recheck({{ c.id }})">🔄</button>
                                             <button class="btn-table btn-table-delete" onclick="deleteCfg({{ c.id }})">🗑</button>
                                         </td>
