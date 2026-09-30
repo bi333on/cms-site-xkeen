@@ -50,7 +50,7 @@
                                     <tr id="row{{ c.id }}">
                                         <td>{{ c.id }}</td>
                                         <td><span class="status-badge status-warning">{{ c.protocol or '—' }}</span></td>
-                                        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ c.url }}"><code>{{ c.url[:60] }}{% if c.url|length > 60 %}…{% endif %}</code> <button class="btn-table" onclick="copyLink('{{ c.url }}', this)" title="Скопировать ссылку">📋</button></td>
+                                        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ c.url }}"><code>{{ c.url[:60] }}{% if c.url|length > 60 %}…{% endif %}</code> <button class="btn-table copy-link-btn" data-url="{{ c.url }}" title="Скопировать ссылку">📋</button></td>
                                         <td><code>{{ c.address or '—' }}{% if c.port %}:{{ c.port }}{% endif %}</code></td>
                                         <td id="ping{{ c.id }}">
                                             {% if c.ping_ok %}
@@ -152,6 +152,13 @@
             } catch (e) {}
             document.body.removeChild(ta);
         }
+
+        // Делегирование кликов по кнопкам копирования
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.copy-link-btn');
+            if (!btn) return;
+            copyLink(btn.getAttribute('data-url'), btn);
+        });
     </script>
 </body>
 </html>
