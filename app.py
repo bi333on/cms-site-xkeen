@@ -244,6 +244,8 @@ def _get_footer_nav_groups():
                 {"label": "Настройка Keenetic", "url": "/nastrojka-keenetic/"},
                 {"label": "Установка Xray", "url": "/ustanovka-xray-keenetic/"},
                 {"label": "Настройка OPKG", "url": "/nastrojka-opkg-keenetic/"},
+                {"label": "Настройка SSH", "url": "/nastrojka-ssh-keenetic/"},
+                {"label": "Обновление KeeneticOS", "url": "/obnovlenie-keeneticos/"},
                 {"label": "Генератор конфига", "url": "/generator/"},
             ],
         },
