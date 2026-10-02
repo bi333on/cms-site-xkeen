@@ -224,10 +224,24 @@ def _get_primary_nav_items():
 
 
 def _get_more_nav_items():
-    """Пункты выпадающего меню «Ещё» (всё, что не вошло в основную навигацию)."""
+    """Пункты выпадающего меню «Ещё» (всё, что не вошло в основную навигацию).
+
+    Пункт «Генератор» поднимается наверх списка.
+    """
     items = _get_nav_items()
     count = _get_nav_visible_count()
-    return items[count:]
+    more = items[count:]
+    # Поднимаем «Генератор» на первое место
+    generator = None
+    rest = []
+    for item in more:
+        if item.get("url") == "/generator/" and generator is None:
+            generator = item
+        else:
+            rest.append(item)
+    if generator is not None:
+        more = [generator] + rest
+    return more
 
 
 def _get_footer_nav_groups():
