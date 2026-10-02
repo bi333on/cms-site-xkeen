@@ -314,28 +314,33 @@ def init_db():
 
 
 def seed_seo_pages():
-    """Создаёт целевые SEO-страницы (идемпотентно по slug).
+    """Создаёт или обновляет целевые SEO-страницы (идемпотентно по slug).
 
-    Существующие страницы не перезаписываются — контент можно править
-    через админку CMS без риска быть затёртым при рестарте.
+    При первом появлении страница создаётся целиком.
+    При повторном запуске обновляются только контентные поля
+    (title, meta_description, meta_keywords, content), а служебные
+    настройки (is_published, access_level, noindex, show_in_menu,
+    menu_label, sort_order) не трогаются — их можно менять в админке.
     """
     for data in seo_pages.SEO_PAGES:
-        if Page.query.filter_by(slug=data["slug"]).first():
-            continue
-        page = Page(
-            title=data["title"],
-            slug=data["slug"],
-            meta_description=data["meta_description"],
-            meta_keywords=data["meta_keywords"],
-            content=data["content"],
-            is_published=True,
-            access_level="public",
-            noindex=False,
-            show_in_menu=False,
-            menu_label="",
-            sort_order=100,
-        )
-        db.session.add(page)
+        page = Page.query.filter_by(slug=data["slug"]).first()
+        if page is None:
+            page = Page(
+                slug=data["slug"],
+                is_published=True,
+                access_level="public",
+                noindex=False,
+                show_in_menu=False,
+                menu_label="",
+                sort_order=100,
+            )
+            db.session.add(page)
+
+        # Обновляем контентные поля из кода (синхронизация со статьями)
+        page.title = data["title"]
+        page.meta_description = data["meta_description"]
+        page.meta_keywords = data["meta_keywords"]
+        page.content = data["content"]
 
 
 def _seed_modules():
