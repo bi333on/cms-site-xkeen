@@ -180,6 +180,19 @@
                 this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             });
         }
+
+        // Блокируем прокрутку страницы при прокрутке выпадающего меню
+        // (когда меню достигает края — не даём сайту скроллиться дальше)
+        var navDropdownMenu = document.querySelector('.nav-dropdown-menu');
+        if (navDropdownMenu) {
+            navDropdownMenu.addEventListener('wheel', function(e) {
+                var atTop = navDropdownMenu.scrollTop <= 0;
+                var atBottom = navDropdownMenu.scrollTop + navDropdownMenu.clientHeight >= navDropdownMenu.scrollHeight - 1;
+                if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
         // Автоскрытие flash-сообщений
         setTimeout(function() {
             var flashes = document.querySelectorAll('.flash-msg');
