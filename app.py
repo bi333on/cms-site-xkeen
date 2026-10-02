@@ -1852,9 +1852,16 @@ def indexnow_host() -> str:
 
 
 def indexnow_notify(urls: list[str]):
-    """Уведомляет Яндекс и Bing об изменении страниц через IndexNow."""
+    """Уведомляет Яндекс и Bing об изменении страниц через IndexNow.
+
+    Отправка выполняется в фоновом потоке, чтобы не блокировать
+    сохранение страницы в админке (внешние запросы могут занимать
+    до нескольких секунд).
+    """
     if not urls:
         return
+    import threading
+
     payload = {
         "host": indexnow_host(),
         "key": config.INDEXNOW_KEY,
@@ -1864,12 +1871,16 @@ def indexnow_notify(urls: list[str]):
         "https://api.indexnow.org/indexnow",
         "https://yandex.com/indexnow",
     ]
-    for ep in endpoints:
-        try:
-            import requests as req_lib
-            req_lib.post(ep, json=payload, timeout=5)
-        except Exception:
-            pass
+
+    def _send():
+        import requests as req_lib
+        for ep in endpoints:
+            try:
+                req_lib.post(ep, json=payload, timeout=5)
+            except Exception:
+                pass
+
+    threading.Thread(target=_send, daemon=True).start()
 
 
 @app.route("/<key>.txt")
